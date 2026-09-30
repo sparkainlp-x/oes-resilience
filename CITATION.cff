@@ -9,6 +9,7 @@ authors:
     affiliation: "Spark AI NLP"
 version: 0.1.0
 date-released: "2026-09-30"
+doi: 10.5281/zenodo.23071166
 license: AGPL-3.0-only
 repository-code: "https://github.com/sparkainlp-x/oes-resilience"
 url: "https://sparkainlpx.xyz"
