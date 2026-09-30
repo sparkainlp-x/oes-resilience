@@ -1,9 +1,9 @@
 {
   "title": "OES-Resilience: Benchmarking telemetry intelligence under real-world stress",
   "upload_type": "software",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "publication_date": "2026-09-30",
-  "description": "<p>Open, reproducible benchmark for multichannel telemetry anomaly detection. Synthetic 512-channel signals are split into sixteen 32-channel blocks and scored by block-level detectors behind a plugin API: the transparent OES32 reference detector (0.45&middot;max|x| + 0.35&middot;RMS + 0.20&middot;mean|x|), a robust z-score baseline, EWMA and CUSUM temporal detectors, and an optional Isolation Forest.</p><p>Version 0.2.0 adds multi-step synthetic streams and a scorecard in which every detector's threshold is calibrated the same way on held-out clean data, reporting false-positive rate, recall, exact localization, IoU, detection latency and machine-dependent CPU time.</p><p>Synthetic data only. Not quantum, not GPS or navigation, not a physical sensor, and no performance claims about real systems.</p>",
+  "description": "<p>Open, reproducible benchmark for multichannel telemetry anomaly detection. Synthetic 512-channel signals are split into sixteen 32-channel blocks and scored by block-level detectors behind a plugin API: the transparent OES32 reference detector (0.45&middot;max|x| + 0.35&middot;RMS + 0.20&middot;mean|x|), a robust z-score baseline, EWMA and CUSUM temporal detectors, an oes32+ewma hybrid and an optional Isolation Forest, compared in a scorecard where every threshold is calibrated the same way on held-out clean data.</p><p>Version 0.3.0 adds a seeded stress suite with exact ground truth (heavy-tailed Student-t noise, missing channels, saturated and clipped channels, narrow and cross-block events, global shift plus burst, correlated blocks, slow drift and baseline steps) and robustness metrics relative to each detector's clean baseline (FP inflation, recall retention, 95% Wilson intervals). Missing data is handled explicitly with documented mask-aware scoring (no zero-filling). Measured weaknesses are reported: OES32 false positives rise sharply under heavy-tailed noise and it loses weak partial-block events, and the oes32+ewma hybrid does not beat EWMA alone.</p><p>Synthetic data only. Not quantum, not GPS or navigation, not a physical sensor, and no performance claims about real systems.</p>",
   "creators": [
     {
       "name": "Brisson, Jean-François",
@@ -19,7 +19,11 @@
     "synthetic-data",
     "telemetry",
     "numpy",
-    "reproducibility"
+    "reproducibility",
+    "observability",
+    "operational-resilience",
+    "signal-processing",
+    "scientific-software"
   ],
   "related_identifiers": [
     {

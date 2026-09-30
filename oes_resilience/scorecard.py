@@ -66,7 +66,7 @@ from .streams import (
     generate_streams,
 )
 
-DEFAULT_DETECTORS: tuple[str, ...] = ("oes32", "zscore", "ewma", "cusum")
+DEFAULT_DETECTORS: tuple[str, ...] = ("oes32", "zscore", "ewma", "cusum", "oes32+ewma")
 TRACKS: tuple[str, ...] = ("frame", "stream")
 CLEAN_FRAME_REGIMES: tuple[Regime, ...] = (Regime.STABLE, Regime.NOISY)
 REFERENCE_LABEL = "oes32@0.50"
@@ -105,12 +105,13 @@ class CompareConfig:
     calibration_trials: int = 1000
     streams: int = 1000
     calibration_streams: int = 1000
+    fit_streams: int = 200
     target_fp: float = 0.01
     detectors: tuple[str, ...] = DEFAULT_DETECTORS
     tracks: tuple[str, ...] = TRACKS
 
     def __post_init__(self) -> None:
-        for name in ("trials", "fit_trials", "calibration_trials", "streams", "calibration_streams"):
+        for name in ("trials", "fit_trials", "calibration_trials", "streams", "calibration_streams", "fit_streams"):
             object.__setattr__(self, name, _require_int(name, getattr(self, name), 1))
         target = _require_finite("target_fp", self.target_fp, 0.0)
         if target >= 1.0:
@@ -135,6 +136,7 @@ class CompareConfig:
             "calibration_trials_per_clean_regime": self.calibration_trials,
             "streams": self.streams,
             "calibration_streams_per_clean_regime": self.calibration_streams,
+            "fit_streams_per_clean_regime": self.fit_streams,
             "stream": self.stream.to_dict(),
             "stream_shift_magnitude": SHIFT_MAGNITUDE,
             "target_fp": self.target_fp,
@@ -265,6 +267,11 @@ def _new_detector(name: str, cc: CompareConfig) -> Detector:
     return create_detector(name, cc.config, **kwargs)
 
 
+def fit_detectors(cc: CompareConfig) -> dict[str, Detector]:
+    """Create and fit ``cc.detectors`` on the shared clean fit data (public for ``stress``)."""
+    return _fit_detectors(cc)
+
+
 def _fit_detectors(cc: CompareConfig) -> dict[str, Detector]:
     detectors = {name: _new_detector(name, cc) for name in cc.detectors}
     needs_frames = any(d.requires_fit and not d.temporal for d in detectors.values())
@@ -275,7 +282,7 @@ def _fit_detectors(cc: CompareConfig) -> dict[str, Detector]:
         )
     if needs_streams:
         streams = np.concatenate(
-            [generate_streams(r, range(cc.calibration_streams), cc.config, cc.stream, PURPOSE_STREAM_FIT)[0]
+            [generate_streams(r, range(cc.fit_streams), cc.config, cc.stream, PURPOSE_STREAM_FIT)[0]
              for r in CLEAN_STREAM_REGIMES]
         )
     for detector in detectors.values():
@@ -307,14 +314,16 @@ class _Timer:
         ]
 
 
-def _frame_track(cc: CompareConfig, detectors: Mapping[str, Detector], timer: _Timer) -> tuple[list, list]:
+def frame_calibration(cc: CompareConfig, detectors: Mapping[str, Detector]) -> tuple[dict[str, float], list]:
+    """Calibrate every frame (non-temporal) detector on held-out clean frames.
+
+    Returns ``(thresholds, calibration records)``; shared by ``compare`` and ``stress``.
+    """
     calibration_frames = {
         r.value: generate_batch(r, range(cc.calibration_trials), cc.config, PURPOSE_CALIBRATION)[0]
         for r in CLEAN_FRAME_REGIMES
     }
-    evaluation = {r: generate_batch(r, range(cc.trials), cc.config) for r in Regime}
-    indices = np.arange(cc.trials)
-    rows: list[dict[str, Any]] = []
+    thresholds: dict[str, float] = {}
     calibrations: list[dict[str, Any]] = []
     for name, detector in detectors.items():
         if detector.temporal:
@@ -322,8 +331,19 @@ def _frame_track(cc: CompareConfig, detectors: Mapping[str, Detector], timer: _T
         maxima = {r: detector.score(frames).max(axis=1) for r, frames in calibration_frames.items()}
         calibration = calibrate_threshold(maxima, cc.target_fp)
         calibrations.append({"track": "frame", "detector": name, "unit": "frame", **calibration})
+        thresholds[name] = calibration["threshold"]
+    return thresholds, calibrations
+
+
+def _frame_track(cc: CompareConfig, detectors: Mapping[str, Detector], timer: _Timer) -> tuple[list, list]:
+    thresholds, calibrations = frame_calibration(cc, detectors)
+    evaluation = {r: generate_batch(r, range(cc.trials), cc.config) for r in Regime}
+    indices = np.arange(cc.trials)
+    rows: list[dict[str, Any]] = []
+    for name, calibrated in thresholds.items():
+        detector = detectors[name]
         scored = {r: timer.score(("frame", name), detector, x, len(x)) for r, (x, _) in evaluation.items()}
-        settings = [(name, "calibrated", calibration["threshold"])]
+        settings = [(name, "calibrated", calibrated)]
         if name == "oes32":
             settings.append((REFERENCE_LABEL, "fixed v0.1 reference", core.Config().threshold))
         for label, how, threshold in settings:
@@ -338,7 +358,11 @@ def _stream_chunks(regime: StreamRegime, count: int, cc: CompareConfig, purpose:
         yield generate_streams(regime, range(start, min(start + STREAM_CHUNK, count)), cc.config, cc.stream, purpose)
 
 
-def _stream_track(cc: CompareConfig, detectors: Mapping[str, Detector], timer: _Timer) -> tuple[list, list]:
+def stream_calibration(cc: CompareConfig, detectors: Mapping[str, Detector]) -> tuple[dict[str, float], list]:
+    """Calibrate every detector on held-out clean streams (unit = whole stream after warm-up).
+
+    Returns ``(thresholds, calibration records)``; shared by ``compare`` and ``stress``.
+    """
     warmup = cc.stream.warmup
     maxima: dict[str, dict[str, list[np.ndarray]]] = {name: {} for name in detectors}
     for regime in CLEAN_STREAM_REGIMES:
@@ -353,6 +377,12 @@ def _stream_track(cc: CompareConfig, detectors: Mapping[str, Detector], timer: _
         calibrations.append({"track": "stream", "detector": name, "unit": "stream (all steps after warm-up)",
                              **calibration})
         thresholds[name] = calibration["threshold"]
+    return thresholds, calibrations
+
+
+def _stream_track(cc: CompareConfig, detectors: Mapping[str, Detector], timer: _Timer) -> tuple[list, list]:
+    warmup = cc.stream.warmup
+    thresholds, calibrations = stream_calibration(cc, detectors)
     rows = []
     for regime in StreamRegime:
         outcomes: dict[str, list[dict[str, np.ndarray]]] = {name: [] for name in detectors}
@@ -468,8 +498,15 @@ def write_compare_outputs(
     out_dir: Path,
     prefix: str,
     metadata: Mapping[str, Any],
+    fields: Sequence[str] = SCORECARD_FIELDS,
+    markdown: Any = None,
 ) -> dict[str, Path]:
-    """Write the deterministic scorecard (JSON, CSV, manifest) and the non-deterministic extras."""
+    """Write the deterministic scorecard (JSON, CSV, manifest) and the non-deterministic extras.
+
+    ``fields`` and ``markdown`` (a ``(scorecard, timing) -> str`` function) let the stress
+    suite reuse this writer; they default to the compare scorecard's.
+    """
+    markdown = scorecard_markdown if markdown is None else markdown
     out_dir = Path(out_dir)
     paths = {
         "scorecard_json": out_dir / f"{prefix}_scorecard.json",
@@ -480,7 +517,7 @@ def write_compare_outputs(
         "metadata": out_dir / f"{prefix}_run_metadata.json",
     }
     json_hash = atomic_write(paths["scorecard_json"], json_bytes(scorecard))
-    csv_hash = atomic_write(paths["scorecard_csv"], csv_bytes(scorecard["rows"], SCORECARD_FIELDS))
+    csv_hash = atomic_write(paths["scorecard_csv"], csv_bytes(scorecard["rows"], fields))
     manifest = {
         "project": PROJECT,
         "version": __version__,
@@ -490,7 +527,7 @@ def write_compare_outputs(
         },
     }
     manifest_hash = atomic_write(paths["manifest"], json_bytes(manifest))
-    atomic_write(paths["scorecard_md"], scorecard_markdown(scorecard, timing).encode("utf-8"))
+    atomic_write(paths["scorecard_md"], markdown(scorecard, timing).encode("utf-8"))
     atomic_write(paths["timing"], json_bytes({"timer": "time.process_time", "machine_dependent": True,
                                               "entries": list(timing)}))
     atomic_write(paths["metadata"], json_bytes({**metadata, "manifest_sha256": manifest_hash}))
@@ -516,6 +553,8 @@ def add_compare_parser(sub: Any) -> argparse.ArgumentParser:
     parser.add_argument("--streams", type=core._positive_int, default=1000, help="evaluation streams per regime")
     parser.add_argument("--calibration-streams", type=core._positive_int, default=1000,
                         help="held-out clean calibration streams per regime")
+    parser.add_argument("--fit-streams", type=core._positive_int, default=200,
+                        help="clean fit streams per regime for temporal detectors that need fitting (default 200)")
     parser.add_argument("--steps", type=int, default=64, help="steps per stream (default 64)")
     parser.add_argument("--warmup", type=int, default=16, help="event-free warm-up steps (default 16)")
     parser.add_argument("--target-fp", type=float, default=0.01, help="calibration target FP rate (default 0.01)")
@@ -540,6 +579,7 @@ def cmd_compare(args: argparse.Namespace, argv: Sequence[str]) -> int:
         calibration_trials=args.calibration_trials,
         streams=args.streams,
         calibration_streams=args.calibration_streams,
+        fit_streams=args.fit_streams,
         target_fp=args.target_fp,
         detectors=args.detectors,
         tracks=args.tracks,

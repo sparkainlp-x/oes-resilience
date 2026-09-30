@@ -6,6 +6,46 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-30
+
+### Added
+- **Stress suite** (`oes_resilience.stress`, CLI `oes-resilience stress`). It has 15 seeded scenarios with exact ground truth on the frame and stream tracks:
+  - clean references;
+  - heavy-tailed Student-t background (configurable df);
+  - channel dropout (NaN; configurable fraction);
+  - saturated (stuck) channels and clipped bursts;
+  - narrow and cross-block bursts;
+  - global shift, with and without a burst;
+  - correlated bursts across adjacent blocks;
+  - slow linear drift and an abrupt baseline step (stream only).
+
+  Thresholds are calibrated exactly as in `compare` and are not re-tuned per scenario. See `docs/stress.md`.
+- **Robustness metrics** in the stress scorecard, relative to each detector's clean baseline:
+  - FP inflation and recall retention;
+  - latency delta;
+  - 95% Wilson intervals;
+  - a conservative `change` flag (worse or better only when the intervals do not overlap).
+
+  The JSON and CSV are deterministic and hash-verified (`stress --verify`).
+- **Explicit missing-data handling.**
+  - `Detector.supports_missing`: NaN is rejected unless a detector declares support, and `inf` is always rejected.
+  - Mask-aware scoring for `oes32`, `zscore`, `ewma`, `cusum` and the hybrid, via `masked_block_stats`, with no zero-filling. A fully missing block scores 0.
+  - The optional `iforest` is reported as unsupported for dropout scenarios.
+- **`oes32+ewma` hybrid detector:** it alarms if OES32 or EWMA fires. The parts are normalised on clean streams and one threshold is calibrated jointly to the same FP budget. Measured result: it does not beat EWMA alone (see the README).
+- `compare`: the hybrid is added to the default detectors, plus `--fit-streams` (default 200 per clean regime) for temporal detectors that need fitting.
+- `examples/stress_scorecard.csv` and `examples/stress_burst03_scorecard.csv`; CI checks both byte for byte.
+- `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1) and `SECURITY.md`.
+- README: a Limitations section and a Python-versions badge.
+- New keywords in `CITATION.cff` and `.zenodo.json`: observability, operational-resilience, signal-processing and scientific-software.
+
+### Changed
+- Detector names may contain `+`.
+- `examples/compare_scorecard.csv` gains the five `oes32+ewma` rows. All other rows are byte-identical to v0.2.0.
+- `write_compare_outputs` accepts custom CSV fields and a Markdown renderer. The calibration steps are exposed as `frame_calibration` and `stream_calibration`, shared by `compare` and `stress`.
+
+### Unchanged
+- The v0.1 and v0.2 regimes, seeds, scoring and example outputs (`baseline_summary.csv`, `sweep_summary.csv` and the v0.2 rows of `compare_scorecard.csv`). Complete-data inputs take the v0.2 code paths.
+
 ## [0.2.0] - 2026-09-30
 
 ### Added

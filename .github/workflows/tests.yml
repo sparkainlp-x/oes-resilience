@@ -26,16 +26,21 @@ jobs:
           python -m oes_resilience run --quiet --no-trials --out-dir "$RUNNER_TEMP/ex" --prefix baseline --strict
           python -m oes_resilience sweep --quiet --out-dir "$RUNNER_TEMP/ex" --prefix sweep
           python -m oes_resilience compare --quiet --verify --out-dir "$RUNNER_TEMP/ex" --prefix compare
+          python -m oes_resilience stress --quiet --verify --out-dir "$RUNNER_TEMP/ex" --prefix stress
+          python -m oes_resilience stress --quiet --burst-mean 0.3 --correlated-mean 0.3 --out-dir "$RUNNER_TEMP/ex" --prefix stress_burst03
           cmp "$RUNNER_TEMP/ex/baseline_summary.csv" examples/baseline_summary.csv
           cmp "$RUNNER_TEMP/ex/sweep_summary.csv" examples/sweep_summary.csv
           cmp "$RUNNER_TEMP/ex/compare_scorecard.csv" examples/compare_scorecard.csv
+          cmp "$RUNNER_TEMP/ex/stress_scorecard.csv" examples/stress_scorecard.csv
+          cmp "$RUNNER_TEMP/ex/stress_burst03_scorecard.csv" examples/stress_burst03_scorecard.csv
       - name: pip install and run the console script
         run: |
           python -m pip install .
           cd "$RUNNER_TEMP"
           oes-resilience --version
           oes-resilience run --trials 50 --quiet --strict --out-dir smoke
-          oes-resilience compare --trials 50 --streams 20 --calibration-streams 50 --quiet --out-dir smoke
+          oes-resilience compare --trials 50 --streams 20 --calibration-streams 50 --fit-streams 20 --quiet --out-dir smoke
+          oes-resilience stress --trials 50 --streams 20 --calibration-streams 50 --fit-streams 20 --quiet --out-dir smoke
           python -c "import oes_resilience as o; assert 'oes32' in o.available_detectors(); print(o.__version__)"
 
   optional-iforest:
@@ -50,3 +55,5 @@ jobs:
         run: python -m pytest --cov --cov-fail-under=90
       - name: Compare with iforest (small run)
         run: oes-resilience compare --detectors oes32,zscore,iforest --tracks frame --trials 200 --quiet --out-dir "$RUNNER_TEMP/if"
+      - name: Stress with iforest (small run; dropout rows are reported as unsupported)
+        run: oes-resilience stress --detectors oes32,iforest --tracks frame --trials 200 --quiet --out-dir "$RUNNER_TEMP/if"
