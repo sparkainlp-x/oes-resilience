@@ -32,6 +32,10 @@ keywords:
   - telemetry
   - numpy
   - reproducibility
+  - observability
+  - operational-resilience
+  - signal-processing
+  - scientific-software
 references:
   - type: software
     title: "OES-32 Residual Reference"

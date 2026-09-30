@@ -12,8 +12,16 @@ Built-in detectors:
   on clean frames.
 * ``ewma`` and ``cusum``: temporal change detectors on each block's mean, standardised
   against the stream's own warm-up steps.
+* ``oes32+ewma``: hybrid; alarm if either OES32 (sudden events) or EWMA (drift) fires,
+  with both parts normalised on clean streams and one threshold calibrated jointly.
 * ``iforest``: Isolation Forest on per-block features. Optional; needs scikit-learn
   (``pip install oes-resilience[iforest]``). The core stays NumPy-only.
+
+Missing data: telemetry may contain NaN for missing channels only if the detector sets
+``supports_missing = True``; otherwise NaN is rejected with an error (never silently
+filled). The built-in mask-aware detectors compute block statistics over the observed
+channels only; a block with no observed channel gets score 0 (it cannot be detected,
+which the stress scorecard reports as lost recall). ``inf`` is always rejected.
 """
 
 from __future__ import annotations
@@ -41,7 +49,7 @@ MIN_SCALE = 1e-9
 #: Entry-point group scanned by :func:`load_plugins`.
 ENTRY_POINT_GROUP = "oes_resilience.detectors"
 
-_NAME_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_\-]*$")
+_NAME_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_+\-]*$")
 
 
 @dataclass(frozen=True)
@@ -99,6 +107,7 @@ class Detector:
     default_threshold: ClassVar[float] = 0.5
     temporal: ClassVar[bool] = False
     requires_fit: ClassVar[bool] = False
+    supports_missing: ClassVar[bool] = False
 
     def __init__(self, config: Config | None = None, threshold: float | None = None) -> None:
         self.config = config if config is not None else Config()
@@ -195,13 +204,37 @@ class Detector:
             )
         if array.size == 0:
             raise ValueError(f"{self.name}: telemetry is empty.")
-        if not np.all(np.isfinite(array)):
-            raise ValueError(f"{self.name}: telemetry contains NaN or infinite values.")
+        if np.any(np.isinf(array)):
+            raise ValueError(f"{self.name}: telemetry contains infinite values.")
+        if np.any(np.isnan(array)) and (for_fit or not self.supports_missing):
+            reason = "fit data must be complete" if for_fit else "this detector does not support missing data"
+            raise ValueError(f"{self.name}: telemetry contains NaN ({reason}).")
         return array
 
     def _blocks(self, frames: np.ndarray) -> np.ndarray:
         """Reshape ``(..., channels)`` to ``(..., blocks, block_size)``."""
         return frames.reshape(*frames.shape[:-1], self.config.blocks, self.config.block_size)
+
+
+def masked_block_stats(blocks: np.ndarray) -> dict[str, np.ndarray]:
+    """Mask-aware block statistics over observed (non-NaN) channels.
+
+    Returns ``count`` (observed channels), ``max_abs``, ``rms``, ``mean_abs`` and
+    ``mean``. For a block with no observed channel all statistics are 0 and
+    ``count`` is 0; callers must treat such blocks as unobserved.
+    """
+    observed = ~np.isnan(blocks)
+    count = observed.sum(axis=-1)
+    values = np.where(observed, blocks, 0.0)  # zeros are excluded via ``count``, never averaged in
+    magnitude = np.abs(values)
+    denominator = np.maximum(count, 1)
+    return {
+        "count": count,
+        "max_abs": magnitude.max(axis=-1),
+        "rms": np.sqrt((values * values).sum(axis=-1) / denominator),
+        "mean_abs": magnitude.sum(axis=-1) / denominator,
+        "mean": values.sum(axis=-1) / denominator,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -287,9 +320,15 @@ class OES32Detector(Detector):
     name = "oes32"
     rule = "score = w_max*max|x| + w_rms*RMS(x) + w_mean*mean|x| per 32-channel block; detected if score >= threshold"
     default_threshold = 0.50
+    supports_missing = True
 
     def _score_frames(self, frames: np.ndarray) -> np.ndarray:
-        return score_signals(frames, self.config)
+        if not np.isnan(frames).any():
+            return score_signals(frames, self.config)  # exact v0.1 path
+        stats = masked_block_stats(self._blocks(frames))
+        w = self.config.score_weights
+        scores = w.maximum * stats["max_abs"] + w.rms * stats["rms"] + w.mean_absolute * stats["mean_abs"]
+        return np.where(stats["count"] > 0, scores, 0.0)
 
     def params(self) -> dict[str, Any]:
         w: ScoreWeights = self.config.score_weights
@@ -302,6 +341,8 @@ class OES32Detector(Detector):
 
 
 def _block_statistic(blocks: np.ndarray, statistic: str) -> np.ndarray:
+    if np.isnan(blocks).any():
+        return masked_block_stats(blocks)[statistic]
     if statistic == "rms":
         return np.sqrt(np.mean(blocks * blocks, axis=-1))
     if statistic == "mean":
@@ -317,6 +358,7 @@ class RobustZScoreDetector(Detector):
     rule = "score = |s - median_b| / (1.4826 * MAD_b), s = block statistic, baseline per block from clean frames"
     default_threshold = 3.5
     requires_fit = True
+    supports_missing = True
     statistics: ClassVar[tuple[str, ...]] = ("rms", "mean", "mean_abs")
 
     def __init__(self, config: Config | None = None, threshold: float | None = None, statistic: str = "rms") -> None:
@@ -334,8 +376,12 @@ class RobustZScoreDetector(Detector):
         self.scale = np.maximum(1.4826 * mad, MIN_SCALE)
 
     def _score_frames(self, frames: np.ndarray) -> np.ndarray:
-        stats = _block_statistic(self._blocks(frames), self.statistic)
-        return np.abs(stats - self.median) / self.scale
+        blocks = self._blocks(frames)
+        stats = _block_statistic(blocks, self.statistic)
+        scores = np.abs(stats - self.median) / self.scale
+        if np.isnan(blocks).any():
+            scores = np.where((~np.isnan(blocks)).any(axis=-1), scores, 0.0)
+        return scores
 
     def params(self) -> dict[str, Any]:
         result: dict[str, Any] = {"statistic": self.statistic}
@@ -351,9 +397,14 @@ class TemporalDetector(Detector):
     For each stream, block means ``m[t, b]`` over the first ``warmup`` steps give a
     per-block mean ``mu_b`` and a pooled standard deviation ``sigma`` (all blocks);
     ``z[t, b] = (m[t, b] - mu_b) / sigma``. Scores during warm-up are 0.
+
+    With missing channels, block means use observed channels only and residuals are
+    scaled by ``sqrt(observed / block_size)`` so blocks with fewer channels are not
+    over-weighted; a block-step with no observed channel contributes ``z = 0``.
     """
 
     temporal = True
+    supports_missing = True
 
     def __init__(self, config: Config | None = None, threshold: float | None = None, warmup: int = 16) -> None:
         super().__init__(config, threshold)
@@ -364,12 +415,32 @@ class TemporalDetector(Detector):
         steps = streams.shape[1]
         if steps <= self.warmup:
             raise ValueError(f"{self.name}: streams need more than warmup={self.warmup} steps; got {steps}.")
+        if np.isnan(streams).any():
+            return self._standardize_masked(streams)
         means = self._blocks(streams).mean(axis=-1)
         base = means[:, : self.warmup]
         mu = base.mean(axis=1)
         dof = self.warmup * self.config.blocks - self.config.blocks
         sigma = np.sqrt(((base - mu[:, None]) ** 2).sum(axis=(1, 2)) / dof)
         z = (means - mu[:, None]) / np.maximum(sigma, MIN_SCALE)[:, None, None]
+        z[:, : self.warmup] = 0.0
+        return z
+
+    def _standardize_masked(self, streams: np.ndarray) -> np.ndarray:
+        stats = masked_block_stats(self._blocks(streams))
+        count = stats["count"]
+        means = np.where(count > 0, stats["mean"], np.nan)
+        weight = np.sqrt(count / self.config.block_size)
+        base = means[:, : self.warmup]
+        with np.errstate(invalid="ignore"), warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)  # all-missing blocks give NaN means
+            mu = np.nanmean(base, axis=1)
+        residual = (base - mu[:, None]) * weight[:, : self.warmup]
+        finite = np.isfinite(residual)
+        dof = np.maximum(finite.sum(axis=(1, 2)) - np.isfinite(mu).sum(axis=1), 1)
+        sigma = np.sqrt((np.where(finite, residual, 0.0) ** 2).sum(axis=(1, 2)) / dof)
+        z = (means - mu[:, None]) * weight / np.maximum(sigma, MIN_SCALE)[:, None, None]
+        z = np.where(np.isfinite(z), z, 0.0)
         z[:, : self.warmup] = 0.0
         return z
 
@@ -434,6 +505,62 @@ class CUSUMDetector(TemporalDetector):
 
     def params(self) -> dict[str, Any]:
         return {**super().params(), "k": self.k}
+
+
+@register_detector
+class OES32EWMAHybridDetector(TemporalDetector):
+    """Hybrid: OES32 for sudden events OR EWMA for drift, one jointly calibrated threshold.
+
+    ``fit`` (clean streams) sets a scale per part: the ``balance_quantile`` quantile of
+    each part's per-stream maximum score after warm-up. The hybrid score is
+    ``max(oes32 / c_oes32, ewma / c_ewma)``, so a single threshold on it is an OR of
+    the two parts, and calibrating that threshold spends one FP budget on both.
+    """
+
+    name = "oes32+ewma"
+    rule = "score = max(oes32/c_oes32, ewma/c_ewma), scales c from clean streams; alarm if either part fires"
+    default_threshold = 1.0
+    requires_fit = True
+
+    def __init__(
+        self, config: Config | None = None, threshold: float | None = None, warmup: int = 16, lam: float = 0.2,
+        balance_quantile: float = 0.99,
+    ) -> None:
+        super().__init__(config, threshold, warmup)
+        self.balance_quantile = _require_finite("balance_quantile", balance_quantile)
+        if not 0.0 < self.balance_quantile <= 1.0:
+            raise ValueError(f"balance_quantile must be in (0, 1]; received {balance_quantile!r}.")
+        self.oes32 = OES32Detector(self.config)
+        self.ewma = EWMADetector(self.config, warmup=warmup, lam=lam)
+        self.scales: dict[str, float] | None = None
+
+    def _parts(self, streams: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        oes = self.oes32.score(streams)
+        oes[:, : self.warmup] = 0.0
+        return oes, self.ewma.score(streams)
+
+    def _fit(self, streams: np.ndarray) -> None:
+        batch = streams if streams.ndim == 3 else streams[None]
+        oes, ewma = self._parts(batch)
+        self.scales = {
+            name: max(float(np.quantile(part[:, self.warmup :].max(axis=(1, 2)), self.balance_quantile)), MIN_SCALE)
+            for name, part in (("oes32", oes), ("ewma", ewma))
+        }
+
+    def _score_streams(self, streams: np.ndarray) -> np.ndarray:
+        oes, ewma = self._parts(streams)
+        return np.maximum(oes / self.scales["oes32"], ewma / self.scales["ewma"])
+
+    def params(self) -> dict[str, Any]:
+        result = {**super().params(), "lam": self.ewma.lam, "balance_quantile": self.balance_quantile}
+        if self.scales is not None:
+            result["scales"] = dict(self.scales)
+        return result
+
+    def explain(self, scores: np.ndarray, detected: np.ndarray, threshold: float) -> dict[str, Any]:
+        result = super().explain(scores, detected, threshold)
+        result["parts"] = ["oes32 (sudden events)", "ewma (drift)"]
+        return result
 
 
 def sklearn_available() -> bool:

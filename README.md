@@ -5,7 +5,10 @@
 [![tests](https://github.com/sparkainlp-x/oes-resilience/actions/workflows/tests.yml/badge.svg)](https://github.com/sparkainlp-x/oes-resilience/actions/workflows/tests.yml)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23071166.svg)](https://doi.org/10.5281/zenodo.23071166)
+[![Python 3.10–3.13](https://img.shields.io/badge/python-3.10%E2%80%933.13-blue.svg)](.github/workflows/tests.yml)
 [![Status: research prototype](https://img.shields.io/badge/status-research%20prototype-orange.svg)](#what-it-is-not)
+
+> **v0.3 is in development** on the `v0.3-dev` branch (unreleased; see the [CHANGELOG](CHANGELOG.md)). It adds a seeded [stress suite](#stress-suite-v030-unreleased) (drift, baseline step, missing channels, clipping and saturation, heavy-tailed noise, narrow and cross-block events, global shift plus burst, and correlated blocks), mask-aware scoring for missing data, and an `oes32+ewma` hybrid detector. The latest release is v0.2.0.
 
 Version 0.2.0 adds a detector plugin API, robust z-score, EWMA and CUSUM baselines (plus an optional Isolation Forest), multi-step synthetic streams and a calibrated [detector comparison](#detector-comparison-v020). It builds on the v0.1.0 benchmark harness, four **synthetic** single-frame regimes and the OES32 reference detector, whose v0.1 results below are unchanged. NumPy is the only required dependency. Stress tests on real-world data are on the [roadmap](#roadmap); they are not in this release.
 
@@ -14,7 +17,7 @@ Version 0.2.0 adds a detector plugin API, robust z-score, EWMA and CUSUM baselin
 - **A reproducible benchmark harness.** Each trial generates a synthetic 512-channel signal and splits it into sixteen 32-channel blocks. The harness asks whether a detector flags the right blocks and reports false-positive, detection, exact-match, overlap (IoU) and localization metrics.
 - **A transparent reference detector (OES32).** Every 32-channel block gets the score `0.45·max|x| + 0.35·RMS(x) + 0.20·mean|x|`. A block is flagged when its score is `>= threshold` (default 0.50). There are no learned parameters, and the whole rule fits on one line.
 - **Deterministic by construction.** Trial *i* of each regime is seeded with `numpy.random.SeedSequence(seed, spawn_key=(regime_key, i))`. The results JSON, summary CSV and manifest are byte-for-byte reproducible, and run metadata (time, platform) goes in a separate file.
-- **A small Python package** (`oes_resilience/`) with a CLI (`run`, `sweep`, `compare`, `test`), a documented [detector plugin API](docs/detector-api.md) and a tested library API. NumPy is the only required dependency.
+- **A small Python package** (`oes_resilience/`) with a CLI (`run`, `sweep`, `compare`, `stress`, `test`), a documented [detector plugin API](docs/detector-api.md) and a tested library API. NumPy is the only required dependency.
 
 ## What it is not
 
@@ -93,6 +96,7 @@ The frame regimes are easy: every frame detector separates them perfectly once c
 | zscore | 0.000 | 0.007 | 1.000 (0) | 0.000 / 0.000 | – | 1.000 (0) |
 | ewma | 0.007 | 0.008 | 1.000 (0) | 0.987 / 0.985 | 6.99 / 6 / 13 | 1.000 (0) |
 | cusum | 0.007 | 0.003 | 1.000 (0) | 0.954 / 0.954 | 14.21 / 14 / 19 | 1.000 (0) |
+| oes32+ewma (v0.3, unreleased) | 0.006 | 0.015 | 1.000 (0) | 0.985 / 0.983 | 7.14 / 6 / 13 | 1.000 (0) |
 
 What the comparison shows:
 
@@ -102,9 +106,80 @@ What the comparison shows:
 - **The shift regime was designed for this.** It is a deliberately chosen case that single-frame detectors are not built for, so it is not evidence of general superiority either way.
 - **FP rates on held-out data scatter around the 1% target** (e.g. OES32 1.2% and CUSUM 0.3% on noisy streams). Each rate comes from 1000 streams; the Wilson intervals are in the CSV.
 
+The `oes32+ewma` row was added in v0.3. Adding it left every other row of the committed scorecard byte-identical. On these regimes it roughly ties EWMA and does not improve on it (see the [hybrid verdict](#does-the-oes32ewma-hybrid-help)).
+
 **CPU time per frame** is measured with `time.process_time` on one machine and depends on hardware and load, so it is not part of the hashed scorecard. On the development machine: OES32 about 4 µs per frame, z-score about 1 µs, EWMA and CUSUM about 0.9 µs per step.
 
 **Optional Isolation Forest** (`pip install ".[iforest]"`, scikit-learn 1.9.1; not in the default run). On the frame track it matched the others: noisy FP 0.009, burst and shock recall and exact match 1.000. On streams it gave noisy FP 0.018, burst recall 1.000 (mean latency 0.09 steps) and shift recall 0.000. It cost about 60 µs per frame. Adding it did not change any other detector's rows.
+
+## Stress suite (v0.3.0, unreleased)
+
+`oes-resilience stress` asks how detectors that have already been calibrated behave when conditions change. Details are in [docs/stress.md](docs/stress.md).
+
+- **Seeded ground truth.** Every scenario has its own keyed seed stream and exact ground truth: the event blocks and the onset step.
+- **Thresholds are not re-tuned.** Each detector keeps the threshold it was calibrated to on clean stable and noisy data, with the same seeds, fit and calibration as `compare` (target 1% FP per clean regime).
+- **Robustness is measured against the detector's own clean baseline** on the same track:
+  - background scenarios against `clean` (N(0, 0.05)): FP inflation = FP − clean FP;
+  - event scenarios against `clean_burst`: recall retention = recall / clean recall.
+- **Uncertainty.** Every rate has a 95% Wilson interval. A row is marked **worse** or **better** only when the stressed interval and the reference interval do not overlap, which is a conservative test.
+- **Sample sizes.** 1000 frames and 1000 streams per scenario (64 steps, warm-up 16, onset 24–48).
+- **Reproducibility.** Both committed scorecards ([default](examples/stress_scorecard.csv), [burst_mean 0.3](examples/stress_burst03_scorecard.csv)) were byte-identical on Python 3.10/NumPy 1.26 and Python 3.13/NumPy 2.2. CI checks both byte for byte, and `stress --verify` re-checks the hash.
+
+**Missing data is explicit.** The dropout scenarios set 10% of channels to NaN for the whole stream.
+- Mask-aware detectors compute block statistics over the observed channels only, so values are never silently zero-filled. A fully missing block scores 0, which is documented.
+- Detectors that do not declare `supports_missing` (for example the optional Isolation Forest) get "unsupported" rows instead of being fed filled data.
+
+**Background stress: false-positive rate** (stream track; default parameters; `clean` = the stable regime, so the clean FP of OES32 and z-score is 0.000 because their calibrated thresholds are set by the noisy regime):
+
+| scenario | oes32 | zscore | ewma | cusum | oes32+ewma |
+|---|---|---|---|---|---|
+| clean | 0.000 | 0.000 | 0.009 | 0.007 | 0.009 |
+| heavy_tail (Student-t, df 3, same std) | 0.810 **worse** | 0.176 **worse** | 0.142 **worse** | 0.012 | 0.796 **worse** |
+| dropout (10% channels NaN) | 0.000 | 0.000 | 0.011 | 0.009 | 0.008 |
+| saturated (2% channels stuck at 0.6) | 0.000 | 0.000 | 0.010 | 0.007 | 0.010 |
+| global_shift (+0.25 on all channels) | 0.000 | 0.000 | 0.009 | 0.013 | 0.007 |
+
+**Event stress: recall.** At the default v0.1 burst amplitude (mean 0.8), every detector reaches recall ≥ 0.980 in every burst-type scenario on both tracks, so those rows show a ceiling effect (full table in [`examples/stress_scorecard.csv`](examples/stress_scorecard.csv)). The table below uses a weaker burst (`--burst-mean 0.3 --correlated-mean 0.3`) so that differences are visible. Stream track; 95% Wilson interval in brackets:
+
+| scenario | oes32 | zscore | ewma | cusum | oes32+ewma |
+|---|---|---|---|---|---|
+| clean_burst (reference) | 0.997 [0.991, 0.999] | 1.000 | 1.000 | 1.000 | 1.000 |
+| heavy_tail_burst | 0.996 | 0.998 | 1.000 | 1.000 | 1.000 |
+| dropout_burst | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| clipped_burst (clip ±0.6) | 0.013 [0.008, 0.022] **worse** | 0.998 | 1.000 | 1.000 | 1.000 |
+| narrow_burst (8 of 32 channels) | 0.046 [0.035, 0.061] **worse** | 0.000 **worse** | 1.000 | 1.000 | 1.000 |
+| cross_block_burst (spans 2 blocks) | 0.553 [0.522, 0.584] **worse** | 0.004 **worse** | 1.000 | 1.000 | 1.000 |
+| correlated_burst (3 adjacent blocks) | 0.919 [0.900, 0.934] **worse** | 1.000 | 1.000 | 1.000 | 1.000 |
+| drift (+0.001 per step, one block) | 0.000 | 0.000 | 0.848 [0.824, 0.869] | 0.629 [0.599, 0.658] | 0.841 [0.817, 0.862] |
+| baseline_step (+0.10, all channels) | 0.000 | 0.000 | 1.000 | 1.000 | 1.000 |
+
+`drift` and `baseline_step` have no clean counterpart, so they are reported in absolute terms. They do not depend on the burst amplitude, so the default run gives the same numbers.
+
+On the **frame track** at burst mean 0.3, clean recall is 0.561 for OES32 and 0.657 for z-score. Recall falls significantly for:
+- `clipped_burst`: OES32 0.264;
+- `narrow_burst`: 0.013 and 0.000;
+- `cross_block_burst`: 0.116 and 0.002;
+- `correlated_burst`: 0.162 and 0.454.
+
+At the default amplitude, OES32's only significant frame-track losses are the heavy-tail FP (0.034 vs 0.000) and `correlated_burst` recall (0.980).
+
+What the stress suite shows (synthetic data; these are properties of the detectors on these generators, not of any real system):
+
+- **Heavy tails break max-based scoring.** The Student-t background (df 3, same standard deviation as clean) drives OES32 to 0.810 FP on streams, because one extreme channel value anywhere in 48 post-warm-up steps is enough. The z-score and EWMA rise to 0.18 and 0.14. CUSUM stays at 0.012, which is not significantly different from its clean rate.
+- **Weak events that fill only part of a block are diluted by block statistics.** This hits `narrow_burst`, `cross_block_burst` and clipped events. The temporal detectors, standardised per stream, keep recall 1.000; the frame detectors lose most of it.
+- **Global shift plus burst is not a robustness gain.** On the frame track, OES32 and z-score reach recall 1.000 on `global_shift_burst` versus 0.561 and 0.657 clean at burst mean 0.3. That happens because the offset adds to the burst's absolute level, so the "better" mark there is an artefact of the scenario.
+- **Missing channels (10%) and 2% saturated channels caused no significant change** for any mask-aware detector at these settings.
+- **Slow drift separates the temporal detectors:** EWMA 0.848 (median latency 18 steps), CUSUM 0.629 (median 24), and the frame detectors 0.000.
+
+### Does the `oes32+ewma` hybrid help?
+
+**Not overall; it does not beat both of its parts.** The hybrid alarms when either OES32 or EWMA fires. Each part is normalised by its 99th-percentile clean-stream maximum, and one threshold is then calibrated on the combined score to the same ~1% FP budget (calibration FP: stable 0.009, noisy 0.010). Measured results:
+
+- **Against OES32 it is much better** on everything OES32 misses: drift 0.841 vs 0.000, baseline step 1.000 vs 0.000, and at burst mean 0.3 clipped, narrow, cross-block and correlated bursts all at 1.000.
+- **Against EWMA it never wins.** Recall is equal or within the Wilson interval everywhere: drift 0.841 vs 0.848, `stream_shift` 0.985 vs 0.987.
+- **It inherits OES32's heavy-tail weakness:** FP 0.796 vs 0.142 for EWMA alone.
+- **Held-out noisy-stream FP** in `compare` was 0.015, against 0.008 for EWMA.
+- **Verdict.** On this suite, EWMA alone dominates the hybrid, and CUSUM is the most robust to heavy tails. The hybrid is kept as a documented, honest negative result and as an example of joint calibration.
 
 ## Install and run
 
@@ -118,6 +193,9 @@ oes-resilience sweep                     # thresholds 0.30..1.00, step 0.05
 oes-resilience sweep --thresholds 0.45,0.5,0.55
 oes-resilience compare --verify          # detector scorecard (JSON, CSV, Markdown), hash re-check
 oes-resilience compare --detectors oes32,ewma --tracks stream --streams 500
+oes-resilience stress --verify           # stress scorecard (JSON, CSV, Markdown), hash re-check
+oes-resilience stress --burst-mean 0.3 --correlated-mean 0.3 --prefix stress_burst03
+oes-resilience stress --scenarios dropout,heavy_tail --t-df 5 --dropout-fraction 0.3
 oes-resilience --help
 ```
 
@@ -132,29 +210,37 @@ Without installing, run `python -m oes_resilience …` from the repository root 
 | `<prefix>_manifest.json` | yes | SHA-256 of the two files above |
 | `<prefix>_run_metadata.json` | no | UTC time, Python, platform, NumPy, elapsed time, argv |
 
-`compare` writes `<prefix>_scorecard.json`, `<prefix>_scorecard.csv` and `<prefix>_manifest.json`, which are deterministic. It also writes `<prefix>_scorecard.md`, `<prefix>_timing.json` and `<prefix>_run_metadata.json`, which include machine-dependent timings. Its options include `--detectors`, `--tracks`, `--target-fp`, `--streams`, `--steps`, `--warmup`, `--plugins` (load entry-point detectors) and `--verify`.
+`compare` writes `<prefix>_scorecard.json`, `<prefix>_scorecard.csv` and `<prefix>_manifest.json`, which are deterministic. It also writes `<prefix>_scorecard.md`, `<prefix>_timing.json` and `<prefix>_run_metadata.json`, which include machine-dependent timings. Its options include `--detectors`, `--tracks`, `--target-fp`, `--streams`, `--fit-streams`, `--steps`, `--warmup`, `--plugins` (load entry-point detectors) and `--verify`. `stress` writes the same set of files (default prefix `oes_resilience_stress`). It also takes `--scenarios` and the perturbation parameters `--t-df`, `--burst-mean`, `--dropout-fraction`, `--saturated-fraction`, `--clip-level`, `--narrow-width`, `--drift-slope`, `--step-size`, `--correlated-blocks`, `--correlated-mean` and `--global-offset`.
 
-**Exit codes:** `0` ok · `1` test failure or I/O error · `2` invalid arguments or configuration · `3` `run --strict` and an expectation check failed · `4` `compare --verify` found a hash mismatch.
+**Exit codes:** `0` ok · `1` test failure or I/O error · `2` invalid arguments or configuration · `3` `run --strict` and an expectation check failed · `4` `compare --verify` or `stress --verify` found a hash mismatch.
 
-**Library use:** `assess_signal(signal, Config())` scores and classifies any 512-value array. `run_benchmark`, `threshold_sweep` and `run_compare` return JSON-ready dictionaries. `create_detector("ewma").detect(stream)` returns a `DetectionResult`, and `register_detector` adds your own detector (see [docs/detector-api.md](docs/detector-api.md)).
+**Library use:** `assess_signal(signal, Config())` scores and classifies any 512-value array. `run_benchmark`, `threshold_sweep`, `run_compare` and `run_stress` return JSON-ready dictionaries. `create_detector("ewma").detect(stream)` returns a `DetectionResult`, and `register_detector` adds your own detector (see [docs/detector-api.md](docs/detector-api.md)).
 
 ## Tests
 
 ```bash
 python -m pip install -e ".[test]"
-python -m pytest --cov            # 114 tests (+76 subtests); coverage gate 90%
+python -m pytest --cov            # 154 tests (+88 subtests); coverage gate 90%
 python -m oes_resilience test     # stdlib unittest runner, no pytest needed (source checkout; else pass --tests-dir)
 ```
 
-CI runs `ruff check`, pytest with the coverage gate, a byte-for-byte check of the example CSVs (including the compare scorecard), and a pip-install smoke test on Python 3.10–3.13. A separate job installs scikit-learn and tests the optional Isolation Forest. The tests cover the scoring formula worked by hand, block mapping for arbitrary block sizes, seed stability, validation errors, metric edge cases, the sweep matching separate runs, reproducible exports and the CLI exit codes. [REVIEW.md](REVIEW.md) is the review of the original prototype (kept in [`original/`](original/)) that this release is based on.
+CI runs `ruff check`, pytest with the coverage gate, a byte-for-byte check of the example CSVs (including the compare and stress scorecards), and a pip-install smoke test on Python 3.10–3.13. A separate job installs scikit-learn and tests the optional Isolation Forest. The tests cover the scoring formula worked by hand, block mapping for arbitrary block sizes, seed stability, validation errors, metric edge cases, the sweep matching separate runs, reproducible exports and the CLI exit codes. [REVIEW.md](REVIEW.md) is the review of the original prototype (kept in [`original/`](original/)) that this release is based on.
 
 ## Roadmap
 
 - **v0.2.0 (released):** detector plugin API; robust z-score, EWMA and CUSUM baselines (optional Isolation Forest); multi-step stream track; calibrated comparative scorecard.
-- **v0.3:** stress tests for drift, channel dropout and heavy-tailed noise.
-- **v0.4:** adapters for the public NASA SMAP/MSL telemetry anomaly datasets.
+- **v0.3 (in development, unreleased):** stress suite with seeded ground truth, mask-aware missing-data scoring, the `oes32+ewma` hybrid, and robustness metrics (recall retention and FP inflation with Wilson intervals).
+- **v0.4 (planned):** adapters for the public NASA SMAP/MSL telemetry anomaly datasets. The data will be downloaded from its public source, not bundled.
 
-Items for v0.3 and v0.4 are not implemented yet, and no results are claimed for them.
+v0.4 is not implemented yet, and no results are claimed for it.
+
+## Limitations
+
+- **The synthetic regimes are much simpler than real telemetry.** They use Gaussian or Student-t noise, independent channels (apart from the designed correlated scenario), fixed 32-channel blocks and one event per stream. There is no seasonality, no cross-sensor physics and no labelling noise.
+- **Calibrated thresholds may not transfer.** They are fitted to the synthetic clean regimes; the heavy-tail rows above show how badly a threshold can transfer when the noise distribution changes. Any real use needs recalibration on representative data.
+- **Block scores discard information.** OES32 and the z-score use magnitudes (|x|, RMS), so they lose sign. They also score each frame on its own, so they lose temporal context. The temporal detectors use block means, which lose within-block structure, so narrow or partial-block events are diluted.
+- **Benchmark results do not guarantee reliability in production.** Good numbers here mean good behaviour on these generators only.
+- **Real deployment needs domain validation and human oversight.** Validate on real, representative data with domain experts, and keep a human in the loop for decisions based on alarms.
 
 ## Related work
 

@@ -25,7 +25,7 @@ import oes_resilience as pkg  # noqa: E402
 from oes_resilience import core, detectors, scorecard, streams  # noqa: E402
 
 SMALL = scorecard.CompareConfig(
-    trials=40, fit_trials=60, calibration_trials=100, streams=24, calibration_streams=60,
+    trials=40, fit_trials=60, calibration_trials=100, streams=24, calibration_streams=60, fit_streams=30,
     stream=streams.StreamConfig(steps=24, warmup=8),
 )
 
@@ -138,7 +138,7 @@ class TestRegistry(unittest.TestCase):
         detectors.unregister_detector(ConstantDetector.name)
 
     def test_builtins_registered(self):
-        self.assertEqual(detectors.available_detectors(), ["cusum", "ewma", "iforest", "oes32", "zscore"])
+        self.assertEqual(detectors.available_detectors(), ["cusum", "ewma", "iforest", "oes32", "oes32+ewma", "zscore"])
         self.assertIs(detectors.get_detector_class("oes32"), detectors.OES32Detector)
         self.assertIsInstance(detectors.create_detector("cusum", warmup=4), detectors.CUSUMDetector)
 
@@ -437,7 +437,7 @@ class TestCompare(unittest.TestCase):
         self.assertEqual(frame_detectors, {"oes32", "oes32@0.50", "zscore"})
         stream_detectors = {r["detector"] for r in self.rows(track="stream")}
         self.assertEqual(stream_detectors, set(scorecard.DEFAULT_DETECTORS))
-        self.assertEqual(len(self.rows(track="stream")), 4 * 5)
+        self.assertEqual(len(self.rows(track="stream")), len(scorecard.DEFAULT_DETECTORS) * 5)
         expected = {("frame", "oes32"), ("frame", "zscore")} | {("stream", d) for d in scorecard.DEFAULT_DETECTORS}
         self.assertEqual({(c["track"], c["detector"]) for c in self.card["calibration"]}, expected)
         for c in self.card["calibration"]:
@@ -485,8 +485,10 @@ class TestCompare(unittest.TestCase):
 
         detectors.register_detector(FittedTemporal)
         try:
-            cc = scorecard.CompareConfig(streams=4, calibration_streams=6, detectors=("test-fitted-temporal",),
-                                         tracks=("stream",), stream=streams.StreamConfig(steps=12, warmup=4))
+            cc = scorecard.CompareConfig(
+                streams=4, calibration_streams=6, fit_streams=6, detectors=("test-fitted-temporal",),
+                tracks=("stream",), stream=streams.StreamConfig(steps=12, warmup=4),
+            )
             scorecard.run_compare(cc)
         finally:
             detectors.unregister_detector(FittedTemporal.name)

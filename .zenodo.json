@@ -19,7 +19,11 @@
     "synthetic-data",
     "telemetry",
     "numpy",
-    "reproducibility"
+    "reproducibility",
+    "observability",
+    "operational-resilience",
+    "signal-processing",
+    "scientific-software"
   ],
   "related_identifiers": [
     {
