@@ -1,0 +1,36 @@
+name: tests
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: python -m pip install --upgrade pip ruff numpy pytest pytest-cov
+      - name: Lint
+        run: ruff check .
+      - name: Tests with coverage (fails under 90%)
+        run: |
+          python -m py_compile oes_resilience.py
+          python -m pytest --cov --cov-report=term-missing --cov-fail-under=90
+      - name: Example summaries are reproduced byte-for-byte
+        run: |
+          python oes_resilience.py run --quiet --no-trials --out-dir "$RUNNER_TEMP/ex" --prefix baseline --strict
+          python oes_resilience.py sweep --quiet --out-dir "$RUNNER_TEMP/ex" --prefix sweep
+          cmp "$RUNNER_TEMP/ex/baseline_summary.csv" examples/baseline_summary.csv
+          cmp "$RUNNER_TEMP/ex/sweep_summary.csv" examples/sweep_summary.csv
+      - name: pip install and run the console script
+        run: |
+          python -m pip install .
+          cd "$RUNNER_TEMP"
+          oes-resilience --version
+          oes-resilience run --trials 50 --quiet --strict --out-dir smoke
+          python -c "import json; r = json.load(open('smoke/oes_resilience_results.json')); assert r['version'] == '0.1.0'"
