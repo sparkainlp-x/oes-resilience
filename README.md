@@ -7,9 +7,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23071166.svg)](https://doi.org/10.5281/zenodo.23071166)
 [![Status: research prototype](https://img.shields.io/badge/status-research%20prototype-orange.svg)](#what-it-is-not)
 
-Version 0.1.0 is the first public release. It ships the benchmark harness, four **synthetic** signal regimes and the OES32 reference detector. It depends only on NumPy. Stress tests on real-world data are on the [roadmap](#roadmap); they are not in this release.
-
-> **This is the `v0.2-dev` branch (0.2.0, unreleased).** It adds a detector plugin API, robust z-score, EWMA and CUSUM baselines (plus an optional Isolation Forest), multi-step synthetic streams and a calibrated [detector comparison](#detector-comparison-v02-in-development). The v0.1 results below are unchanged.
+Version 0.2.0 adds a detector plugin API, robust z-score, EWMA and CUSUM baselines (plus an optional Isolation Forest), multi-step synthetic streams and a calibrated [detector comparison](#detector-comparison-v020). It builds on the v0.1.0 benchmark harness, four **synthetic** single-frame regimes and the OES32 reference detector, whose v0.1 results below are unchanged. NumPy is the only required dependency. Stress tests on real-world data are on the [roadmap](#roadmap); they are not in this release.
 
 ## What it is
 
@@ -68,7 +66,7 @@ Command: `oes-resilience sweep`. Full table: [`examples/sweep_summary.csv`](exam
 
 The stable false-positive rate is 0 and the shock regime flags all 16 blocks at every threshold in the sweep. The default of 0.50 sits at the low edge of the passing range (0.50–0.85).
 
-## Detector comparison (v0.2, in development)
+## Detector comparison (v0.2.0)
 
 `oes-resilience compare` runs every detector through the same fit, calibration and evaluation steps and writes a scorecard (JSON, CSV and Markdown). The [detector API guide](docs/detector-api.md) has the full method; in short:
 
@@ -152,7 +150,7 @@ CI runs `ruff check`, pytest with the coverage gate, a byte-for-byte check of th
 
 ## Roadmap
 
-- **v0.2 (in development on `v0.2-dev`):** detector plugin API ✓; robust z-score, EWMA and CUSUM baselines ✓ (optional Isolation Forest ✓); calibrated comparative scorecard ✓. Not yet released.
+- **v0.2.0 (released):** detector plugin API; robust z-score, EWMA and CUSUM baselines (optional Isolation Forest); multi-step stream track; calibrated comparative scorecard.
 - **v0.3:** stress tests for drift, channel dropout and heavy-tailed noise.
 - **v0.4:** adapters for the public NASA SMAP/MSL telemetry anomaly datasets.
 
@@ -165,7 +163,7 @@ Items for v0.3 and v0.4 are not implemented yet, and no results are claimed for 
 
 ## Citation
 
-See [CITATION.cff](CITATION.cff). The released v0.1.0 is archived on Zenodo: concept DOI [10.5281/zenodo.23071166](https://doi.org/10.5281/zenodo.23071166), covering all versions. This branch is unreleased work.
+See [CITATION.cff](CITATION.cff). Releases are archived on Zenodo under the concept DOI [10.5281/zenodo.23071166](https://doi.org/10.5281/zenodo.23071166), which covers all versions. Each release also gets its own version DOI on Zenodo.
 
 ## License
 

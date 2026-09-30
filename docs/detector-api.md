@@ -1,4 +1,4 @@
-# Detector plugin API (v0.2, unreleased)
+# Detector plugin API (v0.2.0)
 
 OES-Resilience compares **block-level detectors**. A detector turns telemetry into one non-negative score per block, where a block is `block_size` consecutive channels (the default is 32, so a 512-channel frame has 16 blocks). A block is detected when `score >= threshold`. Everything is synthetic; nothing here connects to real sensors.
 
