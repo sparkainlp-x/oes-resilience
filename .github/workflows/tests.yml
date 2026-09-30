@@ -33,6 +33,13 @@ jobs:
           cmp "$RUNNER_TEMP/ex/compare_scorecard.csv" examples/compare_scorecard.csv
           cmp "$RUNNER_TEMP/ex/stress_scorecard.csv" examples/stress_scorecard.csv
           cmp "$RUNNER_TEMP/ex/stress_burst03_scorecard.csv" examples/stress_burst03_scorecard.csv
+      - name: Replay example scorecards are reproduced byte-for-byte
+        run: |
+          python -m oes_resilience replay --write-example-inputs "$RUNNER_TEMP/rp"
+          python -m oes_resilience replay --input "$RUNNER_TEMP/rp/synthetic_replay.jsonl" --prereg examples/replay_prereg_calibrated.json --calibration "$RUNNER_TEMP/rp/synthetic_calibration.jsonl" --out-dir "$RUNNER_TEMP/ex" --prefix replay --verify --quiet
+          python -m oes_resilience replay --input "$RUNNER_TEMP/rp/synthetic_replay.jsonl" --prereg examples/replay_prereg_fixed050.json --out-dir "$RUNNER_TEMP/ex" --prefix replay_fixed050 --verify --quiet
+          cmp "$RUNNER_TEMP/ex/replay_scorecard.csv" examples/replay_scorecard.csv
+          cmp "$RUNNER_TEMP/ex/replay_fixed050_scorecard.csv" examples/replay_fixed050_scorecard.csv
       - name: pip install and run the console script
         run: |
           python -m pip install .
@@ -41,6 +48,8 @@ jobs:
           oes-resilience run --trials 50 --quiet --strict --out-dir smoke
           oes-resilience compare --trials 50 --streams 20 --calibration-streams 50 --fit-streams 20 --quiet --out-dir smoke
           oes-resilience stress --trials 50 --streams 20 --calibration-streams 50 --fit-streams 20 --quiet --out-dir smoke
+          oes-resilience replay --write-example-inputs rp
+          oes-resilience replay --input rp/synthetic_replay.jsonl --prereg "$GITHUB_WORKSPACE/examples/replay_prereg_fixed050.json" --quiet --out-dir smoke
           python -c "import oes_resilience as o; assert 'oes32' in o.available_detectors(); print(o.__version__)"
 
   optional-iforest:

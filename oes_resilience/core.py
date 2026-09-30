@@ -979,13 +979,13 @@ def _add_common(parser: argparse.ArgumentParser, prefix: str) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Argument parser with ``run``, ``sweep``, ``compare``, ``stress`` and ``test`` subcommands."""
+    """Argument parser with ``run``, ``sweep``, ``compare``, ``stress``, ``replay`` and ``test`` subcommands."""
     parser = argparse.ArgumentParser(
         prog="oes-resilience",
         description=f"{PROJECT} v{__version__}: reproducible synthetic benchmark for multichannel "
         "telemetry anomaly detection (OES32 reference detector).",
         epilog="Exit codes: 0 ok, 1 test failure/runtime error, 2 invalid arguments, "
-        "3 --strict and an expectation check failed, 4 compare/stress --verify hash mismatch.",
+        "3 --strict and an expectation check failed, 4 compare/stress/replay --verify hash mismatch.",
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument("--test", action="store_true", help="alias for the 'test' subcommand")
@@ -1011,6 +1011,10 @@ def build_parser() -> argparse.ArgumentParser:
     from .stress import add_stress_parser  # lazy, as above
 
     add_stress_parser(sub)
+
+    from .replay import add_replay_parser  # lazy, as above
+
+    add_replay_parser(sub)
 
     test = sub.add_parser("test", help="run the unit-test suite (unittest discovery)")
     test.add_argument(
@@ -1090,7 +1094,7 @@ def _cmd_sweep(args: argparse.Namespace, argv: Sequence[str]) -> int:
     return EXIT_OK
 
 
-COMMANDS = frozenset({"run", "sweep", "compare", "stress", "test"})
+COMMANDS = frozenset({"run", "sweep", "compare", "stress", "replay", "test"})
 TOP_LEVEL_FLAGS = frozenset({"-h", "--help", "--version", "--test"})
 
 
@@ -1119,6 +1123,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             from .stress import cmd_stress
 
             return cmd_stress(args, argv)
+        if args.command == "replay":
+            from .replay import cmd_replay
+
+            return cmd_replay(args, argv)
         return _cmd_sweep(args, argv)
     except (TypeError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)

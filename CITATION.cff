@@ -7,7 +7,7 @@ authors:
     given-names: "Jean-François"
     orcid: "https://orcid.org/0009-0000-9778-5374"
     affiliation: "Spark AI NLP"
-version: 0.3.0
+version: 0.4.0
 date-released: "2026-09-30"
 doi: 10.5281/zenodo.23071166
 license: AGPL-3.0-only
@@ -20,7 +20,11 @@ abstract: >-
   reference detector (0.45 max|x| + 0.35 RMS + 0.20 mean|x|), a robust
   z-score baseline, EWMA and CUSUM temporal detectors, an oes32+ewma hybrid
   and an optional Isolation Forest, compared in a calibrated scorecard.
-  Version 0.3.0 adds a seeded stress suite (heavy-tailed noise, missing
+  Version 0.4.0 adds replay evaluation: a JSONL telemetry replay is scored
+  against a hashed preregistration, with every detector's threshold calibrated
+  by default to the same ~1% false-positive budget on a hash-locked,
+  event-free calibration replay (fixed thresholds carry a fairness note).
+  Version 0.3.0 added a seeded stress suite (heavy-tailed noise, missing
   channels, saturation and clipping, narrow and cross-block events, global
   shift, correlated blocks, drift and baseline steps) with robustness metrics
   (FP inflation, recall retention, Wilson intervals), explicit mask-aware

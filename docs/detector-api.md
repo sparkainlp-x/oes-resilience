@@ -1,4 +1,4 @@
-# Detector plugin API (v0.2.0; v0.3 additions marked)
+# Detector plugin API (v0.2.0; v0.3 and v0.4 additions marked)
 
 OES-Resilience compares **block-level detectors**. A detector turns telemetry into one non-negative score per block, where a block is `block_size` consecutive channels (the default is 32, so a 512-channel frame has 16 blocks). A block is detected when `score >= threshold`. Everything is synthetic; nothing here connects to real sensors.
 
@@ -18,8 +18,8 @@ Inputs must not contain `inf`. NaN (missing channels) is accepted only by detect
 from oes_resilience import Config, Detector, register_detector
 
 @register_detector
-class MaxAbs(Detector):
-    name = "maxabs"                       # registry key: lowercase letters, digits, '_', '-' or '+' (v0.3)
+class PeakAbs(Detector):
+    name = "peakabs"                      # registry key: lowercase letters, digits, '_', '-' or '+' (v0.3)
     rule = "score = max|x| per block"     # one-line, human-readable rule
     default_threshold = 0.5
     temporal = False                      # True if scores depend on earlier steps
@@ -32,7 +32,7 @@ class MaxAbs(Detector):
     def params(self):                     # optional: reported in the scorecard and explanations
         return {}
 
-det = MaxAbs(Config())                    # or create_detector("maxabs", Config(), threshold=0.4)
+det = PeakAbs(Config())                   # or create_detector("peakabs", Config(), threshold=0.4)
 result = det.fit(clean_frames).detect(frame)
 result.scores, result.detected_blocks, result.status, result.explanation
 ```
@@ -81,16 +81,17 @@ An installed package can expose detectors through an entry point:
 
 ```toml
 [project.entry-points."oes_resilience.detectors"]
-maxabs = "my_package.detectors:MaxAbs"
+peakabs = "my_package.detectors:PeakAbs"
 ```
 
-`oes-resilience compare --plugins --detectors oes32,maxabs` calls `load_plugins()`, which imports those classes and registers them. A plugin that fails to load is skipped with a `RuntimeWarning`. Plugins run arbitrary code at import time, so install only the ones you trust.
+`oes-resilience compare --plugins --detectors oes32,peakabs` calls `load_plugins()`, which imports those classes and registers them. A plugin that fails to load is skipped with a `RuntimeWarning`. Plugins run arbitrary code at import time, so install only the ones you trust.
 
 ## Built-in detectors
 
 | name | type | rule | fitted on |
 |---|---|---|---|
 | `oes32` | frame | `0.45·max|x| + 0.35·RMS + 0.20·mean|x|` (the v0.1 reference; scores identical to `core.score_signals`) | nothing |
+| `maxabs` (v0.4) | frame | `max|x|` per block (the pilot replay harness's baseline; the example above as a built-in); NaN-aware | nothing |
 | `zscore` | frame | `|s − median_b| / (1.4826·MAD_b)` with `s` = block RMS (options: `statistic="mean"` or `"mean_abs"`) | clean frames |
 | `ewma` | temporal | EWMA of the standardised block mean, `λ = 0.2`; score `|e_t| / sqrt(λ/(2−λ))` | nothing (warm-up baseline per stream) |
 | `cusum` | temporal | two-sided tabular CUSUM of the standardised block mean, `k = 0.5` | nothing (warm-up baseline per stream) |

@@ -6,6 +6,26 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-30
+
+### Added
+- **Replay evaluation** (`oes_resilience.replay`, CLI `oes-resilience replay`). It scores a JSONL telemetry replay (512 channels, timezone-aware timestamps, regime and event labels, an optional incumbent alarm and flags) against a hashed preregistration. Folded in from the private `oes512-replay-eval` pilot harness, which is now archived. See `docs/replay.md`.
+  - `oes32` scores come from `core.score_signals`, identical to the pilot's formula. All other detectors come from the plugin API (`maxabs`, `zscore`, `ewma`, `cusum`, `oes32+ewma`, and optional or plugin detectors).
+  - For each detector and regime: event recall and missed event IDs; FP frame rate, FP frames and alarm episodes per 10 minutes; framewise block-localisation precision, recall and IoU; and detection latency.
+  - Preregistration schema 2 has a `threshold_policy`:
+    - `calibrated` (the default in the example) sets every detector's threshold on an event-free calibration replay, which is locked by SHA-256. It uses the same `calibrate_threshold` rule and ~1% FP budget as `compare` and `stress`, with frame units.
+    - `fixed` keeps written-down thresholds, marks the report `comparison_is_calibrated: false` and adds a fairness note.
+  - Schema 1 (the pilot's format) is still accepted and maps to fixed `oes32` and `maxabs` thresholds.
+  - The pilot's input-hardening fixes are carried over. Deep nesting, oversized integers, non-finite values, duplicate or unknown keys, naive or non-increasing timestamps, non-contiguous events, partial incumbent columns and blank lines are rejected with exit code 2. Lines are split on `\n` only, and CRLF is accepted.
+  - Deterministic report, scorecard CSV and manifest; `--verify` exits with code 4 on any byte difference. `--write-example-inputs` regenerates the deterministic example replay (byte-identical to the pilot's data) and the calibration replay.
+- **`maxabs` built-in detector** (`max|x|` per block, NaN-aware), the pilot's baseline.
+- `examples/replay_prereg_calibrated.json`, `examples/replay_prereg_fixed050.json`, `examples/replay_scorecard.csv` and `examples/replay_fixed050_scorecard.csv`. CI regenerates the replays and checks both scorecards byte for byte; they are also byte-identical across NumPy 1.26–2.5.
+- README: a replay section with SYNTHETIC results and caveats. Measured negative result: on a regime-segmented replay, the calibrated CUSUM misses every event and EWMA adds FP frames after events.
+
+### Changed
+- Roadmap: the SMAP/MSL dataset adapters move to v0.5.
+- `docs/detector-api.md`: the plugin example is renamed `peakabs`, so it no longer clashes with the built-in `maxabs`.
+
 ## [0.3.0] - 2026-09-30
 
 ### Added
