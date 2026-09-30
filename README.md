@@ -4,6 +4,7 @@
 
 [![tests](https://github.com/sparkainlp-x/oes-resilience/actions/workflows/tests.yml/badge.svg)](https://github.com/sparkainlp-x/oes-resilience/actions/workflows/tests.yml)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23071166.svg)](https://doi.org/10.5281/zenodo.23071166)
 [![Status: research prototype](https://img.shields.io/badge/status-research%20prototype-orange.svg)](#what-it-is-not)
 
 Version 0.1.0 is the first public release. It ships the benchmark harness, four **synthetic** signal regimes and the OES32 reference detector. It depends only on NumPy. Stress tests on real-world data are on the [roadmap](#roadmap); they are not in this release.
