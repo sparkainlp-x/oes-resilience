@@ -1,4 +1,4 @@
-# Stress suite (v0.3, unreleased)
+# Stress suite (v0.3.0)
 
 `oes-resilience stress` measures how detectors that are already calibrated hold up under seeded synthetic perturbations. Everything is synthetic; the results describe the detectors' behaviour on these generators, not on any real system.
 

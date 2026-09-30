@@ -8,9 +8,7 @@
 [![Python 3.10–3.13](https://img.shields.io/badge/python-3.10%E2%80%933.13-blue.svg)](.github/workflows/tests.yml)
 [![Status: research prototype](https://img.shields.io/badge/status-research%20prototype-orange.svg)](#what-it-is-not)
 
-> **v0.3 is in development** on the `v0.3-dev` branch (unreleased; see the [CHANGELOG](CHANGELOG.md)). It adds a seeded [stress suite](#stress-suite-v030-unreleased) (drift, baseline step, missing channels, clipping and saturation, heavy-tailed noise, narrow and cross-block events, global shift plus burst, and correlated blocks), mask-aware scoring for missing data, and an `oes32+ewma` hybrid detector. The latest release is v0.2.0.
-
-Version 0.2.0 adds a detector plugin API, robust z-score, EWMA and CUSUM baselines (plus an optional Isolation Forest), multi-step synthetic streams and a calibrated [detector comparison](#detector-comparison-v020). It builds on the v0.1.0 benchmark harness, four **synthetic** single-frame regimes and the OES32 reference detector, whose v0.1 results below are unchanged. NumPy is the only required dependency. Stress tests on real-world data are on the [roadmap](#roadmap); they are not in this release.
+Version 0.3.0 adds a seeded [stress suite](#stress-suite-v030) with robustness metrics. It covers drift, baseline steps, missing channels, clipping and saturation, heavy-tailed noise, narrow and cross-block events, global shift plus burst, and correlated blocks. The release also adds mask-aware scoring for missing data and an `oes32+ewma` hybrid detector, which measurably does not beat EWMA alone. Version 0.2.0 added the detector plugin API, robust z-score, EWMA and CUSUM baselines (plus an optional Isolation Forest), multi-step synthetic streams and a calibrated [detector comparison](#detector-comparison-v020). Both build on the v0.1.0 benchmark harness, four **synthetic** single-frame regimes and the OES32 reference detector, whose v0.1 results below are unchanged. NumPy is the only required dependency. Everything is synthetic. Adapters for public real-world datasets are on the [roadmap](#roadmap); they are not in this release.
 
 ## What it is
 
@@ -96,7 +94,7 @@ The frame regimes are easy: every frame detector separates them perfectly once c
 | zscore | 0.000 | 0.007 | 1.000 (0) | 0.000 / 0.000 | – | 1.000 (0) |
 | ewma | 0.007 | 0.008 | 1.000 (0) | 0.987 / 0.985 | 6.99 / 6 / 13 | 1.000 (0) |
 | cusum | 0.007 | 0.003 | 1.000 (0) | 0.954 / 0.954 | 14.21 / 14 / 19 | 1.000 (0) |
-| oes32+ewma (v0.3, unreleased) | 0.006 | 0.015 | 1.000 (0) | 0.985 / 0.983 | 7.14 / 6 / 13 | 1.000 (0) |
+| oes32+ewma (added in v0.3.0) | 0.006 | 0.015 | 1.000 (0) | 0.985 / 0.983 | 7.14 / 6 / 13 | 1.000 (0) |
 
 What the comparison shows:
 
@@ -112,7 +110,7 @@ The `oes32+ewma` row was added in v0.3. Adding it left every other row of the co
 
 **Optional Isolation Forest** (`pip install ".[iforest]"`, scikit-learn 1.9.1; not in the default run). On the frame track it matched the others: noisy FP 0.009, burst and shock recall and exact match 1.000. On streams it gave noisy FP 0.018, burst recall 1.000 (mean latency 0.09 steps) and shift recall 0.000. It cost about 60 µs per frame. Adding it did not change any other detector's rows.
 
-## Stress suite (v0.3.0, unreleased)
+## Stress suite (v0.3.0)
 
 `oes-resilience stress` asks how detectors that have already been calibrated behave when conditions change. Details are in [docs/stress.md](docs/stress.md).
 
@@ -229,7 +227,7 @@ CI runs `ruff check`, pytest with the coverage gate, a byte-for-byte check of th
 ## Roadmap
 
 - **v0.2.0 (released):** detector plugin API; robust z-score, EWMA and CUSUM baselines (optional Isolation Forest); multi-step stream track; calibrated comparative scorecard.
-- **v0.3 (in development, unreleased):** stress suite with seeded ground truth, mask-aware missing-data scoring, the `oes32+ewma` hybrid, and robustness metrics (recall retention and FP inflation with Wilson intervals).
+- **v0.3.0 (released):** stress suite with seeded ground truth, mask-aware missing-data scoring, the `oes32+ewma` hybrid, and robustness metrics (recall retention and FP inflation with Wilson intervals).
 - **v0.4 (planned):** adapters for the public NASA SMAP/MSL telemetry anomaly datasets. The data will be downloaded from its public source, not bundled.
 
 v0.4 is not implemented yet, and no results are claimed for it.
