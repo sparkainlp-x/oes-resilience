@@ -1,5 +1,7 @@
 name: tests
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
 permissions:
   contents: read
 jobs:
@@ -18,19 +20,33 @@ jobs:
       - name: Lint
         run: ruff check .
       - name: Tests with coverage (fails under 90%)
+        run: python -m pytest --cov --cov-report=term-missing --cov-fail-under=90
+      - name: Example outputs are reproduced byte-for-byte
         run: |
-          python -m py_compile oes_resilience.py
-          python -m pytest --cov --cov-report=term-missing --cov-fail-under=90
-      - name: Example summaries are reproduced byte-for-byte
-        run: |
-          python oes_resilience.py run --quiet --no-trials --out-dir "$RUNNER_TEMP/ex" --prefix baseline --strict
-          python oes_resilience.py sweep --quiet --out-dir "$RUNNER_TEMP/ex" --prefix sweep
+          python -m oes_resilience run --quiet --no-trials --out-dir "$RUNNER_TEMP/ex" --prefix baseline --strict
+          python -m oes_resilience sweep --quiet --out-dir "$RUNNER_TEMP/ex" --prefix sweep
+          python -m oes_resilience compare --quiet --verify --out-dir "$RUNNER_TEMP/ex" --prefix compare
           cmp "$RUNNER_TEMP/ex/baseline_summary.csv" examples/baseline_summary.csv
           cmp "$RUNNER_TEMP/ex/sweep_summary.csv" examples/sweep_summary.csv
+          cmp "$RUNNER_TEMP/ex/compare_scorecard.csv" examples/compare_scorecard.csv
       - name: pip install and run the console script
         run: |
           python -m pip install .
           cd "$RUNNER_TEMP"
           oes-resilience --version
           oes-resilience run --trials 50 --quiet --strict --out-dir smoke
-          python -c "import json; r = json.load(open('smoke/oes_resilience_results.json')); assert r['version'] == '0.1.0'"
+          oes-resilience compare --trials 50 --streams 20 --calibration-streams 50 --quiet --out-dir smoke
+          python -c "import oes_resilience as o; assert 'oes32' in o.available_detectors(); print(o.__version__)"
+
+  optional-iforest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade pip && python -m pip install ".[test,iforest]"
+      - name: Tests including the optional Isolation Forest detector
+        run: python -m pytest --cov --cov-fail-under=90
+      - name: Compare with iforest (small run)
+        run: oes-resilience compare --detectors oes32,zscore,iforest --tracks frame --trials 200 --quiet --out-dir "$RUNNER_TEMP/if"

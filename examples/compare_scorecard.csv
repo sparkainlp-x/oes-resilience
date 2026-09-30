@@ -1,0 +1,33 @@
+track,detector,regime,calibration,threshold,n,fp_rate,fp_ci95_high,early_alarm_rate,recall,exact_match_rate,mean_iou,mean_detected_blocks,latency_mean,latency_median,latency_p90,latency_max
+frame,oes32,stable,calibrated,0.4543122464068098,1000,0.0,0.003826758486,,,1.0,,0.0,,,,
+frame,oes32,noisy,calibrated,0.4543122464068098,1000,0.009,0.017015816165,,,0.991,,0.009,,,,
+frame,oes32,localized_burst,calibrated,0.4543122464068098,1000,,,,1.0,1.0,1.0,1.0,,,,
+frame,oes32,global_shock,calibrated,0.4543122464068098,1000,,,,1.0,1.0,1.0,16.0,,,,
+frame,oes32@0.50,stable,fixed v0.1 reference,0.5,1000,0.0,0.003826758486,,,1.0,,0.0,,,,
+frame,oes32@0.50,noisy,fixed v0.1 reference,0.5,1000,0.0,0.003826758486,,,1.0,,0.0,,,,
+frame,oes32@0.50,localized_burst,fixed v0.1 reference,0.5,1000,,,,1.0,1.0,1.0,1.0,,,,
+frame,oes32@0.50,global_shock,fixed v0.1 reference,0.5,1000,,,,1.0,1.0,1.0,16.0,,,,
+frame,zscore,stable,calibrated,1.2258043531485228,1000,0.0,0.003826758486,,,1.0,,0.0,,,,
+frame,zscore,noisy,calibrated,1.2258043531485228,1000,0.006,0.013028168242,,,0.994,,0.006,,,,
+frame,zscore,localized_burst,calibrated,1.2258043531485228,1000,,,,1.0,1.0,1.0,1.0,,,,
+frame,zscore,global_shock,calibrated,1.2258043531485228,1000,,,,1.0,1.0,1.0,16.0,,,,
+stream,oes32,stream_stable,calibrated,0.49166045306926986,1000,0.0,0.003826758486,,,,,,,,,
+stream,zscore,stream_stable,calibrated,1.3483092923957776,1000,0.0,0.003826758486,,,,,,,,,
+stream,ewma,stream_stable,calibrated,5.348866340890248,1000,0.007,0.014378315466,,,,,,,,,
+stream,cusum,stream_stable,calibrated,25.889763997753136,1000,0.007,0.014378315466,,,,,,,,,
+stream,oes32,stream_noisy,calibrated,0.49166045306926986,1000,0.012,0.020857268475,,,,,,,,,
+stream,zscore,stream_noisy,calibrated,1.3483092923957776,1000,0.007,0.014378315466,,,,,,,,,
+stream,ewma,stream_noisy,calibrated,5.348866340890248,1000,0.008,0.015706334531,,,,,,,,,
+stream,cusum,stream_noisy,calibrated,25.889763997753136,1000,0.003,0.008783014054,,,,,,,,,
+stream,oes32,stream_burst,calibrated,0.49166045306926986,1000,,,0.0,1.0,1.0,1.0,,0.0,0.0,0.0,0.0
+stream,zscore,stream_burst,calibrated,1.3483092923957776,1000,,,0.0,1.0,1.0,1.0,,0.0,0.0,0.0,0.0
+stream,ewma,stream_burst,calibrated,5.348866340890248,1000,,,0.004,1.0,1.0,1.0,,0.0,0.0,0.0,0.0
+stream,cusum,stream_burst,calibrated,25.889763997753136,1000,,,0.0,1.0,1.0,1.0,,0.0,0.0,0.0,0.0
+stream,oes32,stream_shift,calibrated,0.49166045306926986,1000,,,0.0,0.0,0.0,0.0,,,,,
+stream,zscore,stream_shift,calibrated,1.3483092923957776,1000,,,0.0,0.0,0.0,0.0,,,,,
+stream,ewma,stream_shift,calibrated,5.348866340890248,1000,,,0.003,0.987,0.985,0.985,,6.99493414387,6.0,13.0,32.0
+stream,cusum,stream_shift,calibrated,25.889763997753136,1000,,,0.0,0.954,0.954,0.954,,14.206498951782,14.0,19.0,30.0
+stream,oes32,stream_shock,calibrated,0.49166045306926986,1000,,,0.0,1.0,1.0,1.0,,0.0,0.0,0.0,0.0
+stream,zscore,stream_shock,calibrated,1.3483092923957776,1000,,,0.0,1.0,1.0,1.0,,0.0,0.0,0.0,0.0
+stream,ewma,stream_shock,calibrated,5.348866340890248,1000,,,0.004,1.0,1.0,1.0,,0.0,0.0,0.0,0.0
+stream,cusum,stream_shock,calibrated,25.889763997753136,1000,,,0.0,1.0,1.0,1.0,,0.0,0.0,0.0,0.0
