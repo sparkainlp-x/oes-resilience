@@ -1,0 +1,39 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata from this file."
+title: "OES-Resilience: Benchmarking telemetry intelligence under real-world stress"
+type: software
+authors:
+  - family-names: "Brisson"
+    given-names: "Jean-François"
+    orcid: "https://orcid.org/0009-0000-9778-5374"
+    affiliation: "Spark AI NLP"
+version: 0.1.0
+date-released: "2026-09-30"
+license: AGPL-3.0-only
+repository-code: "https://github.com/sparkainlp-x/oes-resilience"
+url: "https://sparkainlpx.xyz"
+abstract: >-
+  Open, reproducible benchmark for multichannel telemetry anomaly detection.
+  Version 0.1.0 generates synthetic 512-channel signals under four regimes
+  (stable, noisy, localized burst, global shock), scores sixteen 32-channel
+  blocks with the transparent OES32 reference detector
+  (0.45 max|x| + 0.35 RMS + 0.20 mean|x|, threshold 0.50), and reports
+  deterministic false-positive, detection, exact-match and localization
+  metrics with threshold sweeps. Synthetic data only; not quantum, not GPS,
+  not a physical sensor, and no performance claims about real systems.
+keywords:
+  - anomaly-detection
+  - benchmark
+  - synthetic-data
+  - telemetry
+  - numpy
+  - reproducibility
+references:
+  - type: software
+    title: "OES-32 Residual Reference"
+    authors:
+      - family-names: "Brisson"
+        given-names: "Jean-François"
+        orcid: "https://orcid.org/0009-0000-9778-5374"
+    doi: "10.5281/zenodo.22985521"
+    repository-code: "https://github.com/sparkainlp-x/oes32-residual"

@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "oes-resilience"
+dynamic = ["version"]
+description = "OES-Resilience: open, reproducible benchmark for multichannel telemetry anomaly detection with the transparent OES32 reference detector; NumPy only; synthetic data, no physical claims"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "AGPL-3.0-only"
+license-files = ["LICENSE"]
+authors = [{ name = "Jean-François Brisson" }]
+keywords = ["anomaly-detection", "benchmark", "synthetic-data", "telemetry", "numpy", "reproducibility"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+]
+dependencies = ["numpy>=1.23"]
+
+[project.optional-dependencies]
+test = ["pytest>=7", "pytest-cov>=4"]
+
+[project.urls]
+Repository = "https://github.com/sparkainlp-x/oes-resilience"
+
+[project.scripts]
+oes-resilience = "oes_resilience:main"
+
+[tool.setuptools]
+py-modules = ["oes_resilience"]
+
+[tool.setuptools.dynamic]
+version = { attr = "oes_resilience.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+extend-exclude = ["original"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+
+[tool.coverage.run]
+branch = true
+source = ["oes_resilience"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true

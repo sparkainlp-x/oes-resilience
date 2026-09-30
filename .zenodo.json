@@ -1,0 +1,37 @@
+{
+  "title": "OES-Resilience: Benchmarking telemetry intelligence under real-world stress",
+  "upload_type": "software",
+  "version": "0.1.0",
+  "publication_date": "2026-09-30",
+  "description": "<p>Open, reproducible benchmark for multichannel telemetry anomaly detection. Version 0.1.0 generates synthetic 512-channel signals under four regimes (stable, noisy, localized burst, global shock), scores sixteen 32-channel blocks with the transparent OES32 reference detector (0.45&middot;max|x| + 0.35&middot;RMS + 0.20&middot;mean|x|, threshold 0.50), and reports deterministic false-positive, detection, exact-match and localization metrics with threshold sweeps.</p><p>Synthetic data only. Not quantum, not GPS or navigation, not a physical sensor, and no performance claims about real systems.</p>",
+  "creators": [
+    {
+      "name": "Brisson, Jean-François",
+      "orcid": "0009-0000-9778-5374",
+      "affiliation": "Spark AI NLP"
+    }
+  ],
+  "license": "AGPL-3.0-only",
+  "access_right": "open",
+  "keywords": [
+    "anomaly-detection",
+    "benchmark",
+    "synthetic-data",
+    "telemetry",
+    "numpy",
+    "reproducibility"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "10.5281/zenodo.22985521",
+      "relation": "references",
+      "scheme": "doi",
+      "resource_type": "software"
+    },
+    {
+      "identifier": "https://github.com/sparkainlp-x/oes-resilience",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}
