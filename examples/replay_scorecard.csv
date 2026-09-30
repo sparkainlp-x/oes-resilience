@@ -1,0 +1,25 @@
+detector,threshold,threshold_source,regime,frame_count,event_count,detected_event_count,event_recall,missed_event_ids,no_event_frame_count,false_positive_frame_count,false_positive_frame_rate,false_positive_frames_per_10min,false_positive_alarm_episodes_per_10min,localization_precision,localization_recall,localization_iou,mean_latency_ms,median_latency_ms
+oes32,0.449978486531,calibrated,Stable,60,0,0,,,60,0,0.0,0.0,0.0,,,,,
+oes32,0.449978486531,calibrated,Noisy,60,0,0,,,60,1,0.016666666667,10.0,10.0,0.0,,0.0,,
+oes32,0.449978486531,calibrated,Localized Burst,60,2,2,1.0,,48,0,0.0,0.0,0.0,1.0,1.0,1.0,0.0,0.0
+oes32,0.449978486531,calibrated,Global Shock,60,1,1,1.0,,54,0,0.0,0.0,0.0,1.0,1.0,1.0,0.0,0.0
+maxabs,0.649935,calibrated,Stable,60,0,0,,,60,0,0.0,0.0,0.0,,,,,
+maxabs,0.649935,calibrated,Noisy,60,0,0,,,60,0,0.0,0.0,0.0,,,,,
+maxabs,0.649935,calibrated,Localized Burst,60,2,2,1.0,,48,0,0.0,0.0,0.0,1.0,1.0,1.0,0.0,0.0
+maxabs,0.649935,calibrated,Global Shock,60,1,1,1.0,,54,0,0.0,0.0,0.0,1.0,1.0,1.0,0.0,0.0
+zscore,1.1733050151,calibrated,Stable,60,0,0,,,60,0,0.0,0.0,0.0,,,,,
+zscore,1.1733050151,calibrated,Noisy,60,0,0,,,60,4,0.066666666667,40.0,30.0,0.0,,0.0,,
+zscore,1.1733050151,calibrated,Localized Burst,60,2,2,1.0,,48,0,0.0,0.0,0.0,1.0,1.0,1.0,0.0,0.0
+zscore,1.1733050151,calibrated,Global Shock,60,1,1,1.0,,54,0,0.0,0.0,0.0,1.0,1.0,1.0,0.0,0.0
+ewma,94.574370028528,calibrated,Stable,60,0,0,,,60,0,0.0,0.0,0.0,,,,,
+ewma,94.574370028528,calibrated,Noisy,60,0,0,,,60,5,0.083333333333,50.0,40.0,0.0,,0.0,,
+ewma,94.574370028528,calibrated,Localized Burst,60,2,2,1.0,,48,6,0.125,60.0,20.0,0.625,0.833333333333,0.555555555556,1000.0,1000.0
+ewma,94.574370028528,calibrated,Global Shock,60,1,1,1.0,,54,7,0.12962962963,70.0,10.0,0.461538461538,1.0,0.461538461538,0.0,0.0
+cusum,8618.316351372929,calibrated,Stable,60,0,0,,,60,0,0.0,0.0,0.0,,,,,
+cusum,8618.316351372929,calibrated,Noisy,60,0,0,,,60,0,0.0,0.0,0.0,,,,,
+cusum,8618.316351372929,calibrated,Localized Burst,60,2,0,0.0,burst-01;burst-02,48,0,0.0,0.0,0.0,,0.0,0.0,,
+cusum,8618.316351372929,calibrated,Global Shock,60,1,0,0.0,shock-01,54,0,0.0,0.0,0.0,,0.0,0.0,,
+oes32+ewma,0.996949721104,calibrated,Stable,60,0,0,,,60,0,0.0,0.0,0.0,,,,,
+oes32+ewma,0.996949721104,calibrated,Noisy,60,0,0,,,60,5,0.083333333333,50.0,40.0,0.0,,0.0,,
+oes32+ewma,0.996949721104,calibrated,Localized Burst,60,2,2,1.0,,48,6,0.125,60.0,20.0,0.666666666667,1.0,0.666666666667,0.0,0.0
+oes32+ewma,0.996949721104,calibrated,Global Shock,60,1,1,1.0,,54,7,0.12962962963,70.0,10.0,0.461538461538,1.0,0.461538461538,0.0,0.0

@@ -6,7 +6,8 @@ or medical device, and no claims about any of those.
 
 Modules: :mod:`.core` (v0.1 single-frame benchmark, OES32 scoring, CLI),
 :mod:`.detectors` (plugin API and detectors), :mod:`.streams` (multi-step streams),
-:mod:`.scorecard` (calibrated detector comparison), :mod:`.stress` (robustness stress suite).
+:mod:`.scorecard` (calibrated detector comparison), :mod:`.stress` (robustness stress suite),
+:mod:`.replay` (preregistered evaluation of timestamped replay files).
 """
 
 from ._version import __version__
@@ -30,6 +31,7 @@ from .detectors import (
     Detector,
     EWMADetector,
     IsolationForestDetector,
+    MaxAbsDetector,
     OES32Detector,
     OES32EWMAHybridDetector,
     RobustZScoreDetector,
@@ -41,6 +43,8 @@ from .detectors import (
     register_detector,
     unregister_detector,
 )
+from .replay import build_report as build_replay_report
+from .replay import load_preregistration, load_replay
 from .scorecard import CompareConfig, calibrate_threshold, run_compare
 from .streams import StreamConfig, StreamRegime, generate_streams
 from .stress import SCENARIOS, StressConfig, StressParams, run_stress
@@ -49,9 +53,10 @@ __all__ = [
     "PROJECT", "Config", "Event", "Regime", "ScoreWeights", "Status", "__version__", "assess_signal", "main",
     "run_benchmark", "run_trial", "score_signals", "threshold_sweep",
     "CUSUMDetector", "DetectionResult", "Detector", "EWMADetector", "IsolationForestDetector", "OES32Detector",
-    "OES32EWMAHybridDetector",
+    "OES32EWMAHybridDetector", "MaxAbsDetector",
     "RobustZScoreDetector", "TemporalDetector", "available_detectors", "create_detector", "get_detector_class",
     "load_plugins", "register_detector", "unregister_detector",
     "CompareConfig", "calibrate_threshold", "run_compare", "StreamConfig", "StreamRegime", "generate_streams",
     "SCENARIOS", "StressConfig", "StressParams", "run_stress",
+    "build_replay_report", "load_preregistration", "load_replay",
 ]

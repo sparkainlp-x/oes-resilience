@@ -138,7 +138,9 @@ class TestRegistry(unittest.TestCase):
         detectors.unregister_detector(ConstantDetector.name)
 
     def test_builtins_registered(self):
-        self.assertEqual(detectors.available_detectors(), ["cusum", "ewma", "iforest", "oes32", "oes32+ewma", "zscore"])
+        self.assertEqual(
+            detectors.available_detectors(), ["cusum", "ewma", "iforest", "maxabs", "oes32", "oes32+ewma", "zscore"]
+        )
         self.assertIs(detectors.get_detector_class("oes32"), detectors.OES32Detector)
         self.assertIsInstance(detectors.create_detector("cusum", warmup=4), detectors.CUSUMDetector)
 

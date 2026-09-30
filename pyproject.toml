@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "oes-resilience"
 dynamic = ["version"]
-description = "OES-Resilience: open, reproducible benchmark for multichannel telemetry anomaly detection with the transparent OES32 reference detector, a detector plugin API and a calibrated scorecard; NumPy only; synthetic data, no physical claims"
+description = "OES-Resilience: open, reproducible benchmark for multichannel telemetry anomaly detection with the transparent OES32 reference detector, a detector plugin API, a calibrated scorecard and preregistered replay evaluation; NumPy only; synthetic data, no physical claims"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "AGPL-3.0-only"

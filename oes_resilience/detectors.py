@@ -8,6 +8,7 @@ per time step for streams); a block is detected when ``score >= threshold``. See
 Built-in detectors:
 
 * ``oes32``: the v0.1 reference score ``0.45 max|x| + 0.35 RMS + 0.20 mean|x|``.
+* ``maxabs``: the simplest block baseline, ``max|x|`` per block (added in v0.4 for replay).
 * ``zscore``: robust z-score of each block's RMS against a median/MAD baseline fitted
   on clean frames.
 * ``ewma`` and ``cusum``: temporal change detectors on each block's mean, standardised
@@ -338,6 +339,22 @@ class OES32Detector(Detector):
         result = super().explain(scores, detected, threshold)
         result["components"] = ["max|x|", "RMS", "mean|x|"]
         return result
+
+
+@register_detector
+class MaxAbsDetector(Detector):
+    """Per-block peak absolute value; the simple comparison baseline used by ``replay``."""
+
+    name = "maxabs"
+    rule = "score = max|x| per 32-channel block; detected if score >= threshold"
+    default_threshold = 0.50
+    supports_missing = True
+
+    def _score_frames(self, frames: np.ndarray) -> np.ndarray:
+        blocks = self._blocks(frames)
+        if not np.isnan(blocks).any():
+            return np.abs(blocks).max(axis=-1)
+        return masked_block_stats(blocks)["max_abs"]
 
 
 def _block_statistic(blocks: np.ndarray, statistic: str) -> np.ndarray:

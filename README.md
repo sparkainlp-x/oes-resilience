@@ -8,14 +8,14 @@
 [![Python 3.10–3.13](https://img.shields.io/badge/python-3.10%E2%80%933.13-blue.svg)](.github/workflows/tests.yml)
 [![Status: research prototype](https://img.shields.io/badge/status-research%20prototype-orange.svg)](#what-it-is-not)
 
-Version 0.3.0 adds a seeded [stress suite](#stress-suite-v030) with robustness metrics. It covers drift, baseline steps, missing channels, clipping and saturation, heavy-tailed noise, narrow and cross-block events, global shift plus burst, and correlated blocks. The release also adds mask-aware scoring for missing data and an `oes32+ewma` hybrid detector, which measurably does not beat EWMA alone. Version 0.2.0 added the detector plugin API, robust z-score, EWMA and CUSUM baselines (plus an optional Isolation Forest), multi-step synthetic streams and a calibrated [detector comparison](#detector-comparison-v020). Both build on the v0.1.0 benchmark harness, four **synthetic** single-frame regimes and the OES32 reference detector, whose v0.1 results below are unchanged. NumPy is the only required dependency. Everything is synthetic. Adapters for public real-world datasets are on the [roadmap](#roadmap); they are not in this release.
+Version 0.4.0 adds [replay evaluation](#replay-evaluation-v040). It scores a recorded or synthetic telemetry replay against a hashed preregistration using the same detectors, and by default every threshold is calibrated to the shared ~1% FP budget. Version 0.3.0 added a seeded [stress suite](#stress-suite-v030) with robustness metrics. It covers drift, baseline steps, missing channels, clipping and saturation, heavy-tailed noise, narrow and cross-block events, global shift plus burst, and correlated blocks. That release also added mask-aware scoring for missing data and an `oes32+ewma` hybrid detector, which measurably does not beat EWMA alone. Version 0.2.0 added the detector plugin API, robust z-score, EWMA and CUSUM baselines (plus an optional Isolation Forest), multi-step synthetic streams and a calibrated [detector comparison](#detector-comparison-v020). Both build on the v0.1.0 benchmark harness, four **synthetic** single-frame regimes and the OES32 reference detector, whose v0.1 results below are unchanged. NumPy is the only required dependency. Everything is synthetic: no real telemetry has been replayed. Adapters for public real-world datasets are on the [roadmap](#roadmap); they are not in this release.
 
 ## What it is
 
 - **A reproducible benchmark harness.** Each trial generates a synthetic 512-channel signal and splits it into sixteen 32-channel blocks. The harness asks whether a detector flags the right blocks and reports false-positive, detection, exact-match, overlap (IoU) and localization metrics.
 - **A transparent reference detector (OES32).** Every 32-channel block gets the score `0.45·max|x| + 0.35·RMS(x) + 0.20·mean|x|`. A block is flagged when its score is `>= threshold` (default 0.50). There are no learned parameters, and the whole rule fits on one line.
 - **Deterministic by construction.** Trial *i* of each regime is seeded with `numpy.random.SeedSequence(seed, spawn_key=(regime_key, i))`. The results JSON, summary CSV and manifest are byte-for-byte reproducible, and run metadata (time, platform) goes in a separate file.
-- **A small Python package** (`oes_resilience/`) with a CLI (`run`, `sweep`, `compare`, `stress`, `test`), a documented [detector plugin API](docs/detector-api.md) and a tested library API. NumPy is the only required dependency.
+- **A small Python package** (`oes_resilience/`) with a CLI (`run`, `sweep`, `compare`, `stress`, `replay`, `test`), a documented [detector plugin API](docs/detector-api.md) and a tested library API. NumPy is the only required dependency.
 
 ## What it is not
 
@@ -179,6 +179,35 @@ What the stress suite shows (synthetic data; these are properties of the detecto
 - **Held-out noisy-stream FP** in `compare` was 0.015, against 0.008 for EWMA.
 - **Verdict.** On this suite, EWMA alone dominates the hybrid, and CUSUM is the most robust to heavy tails. The hybrid is kept as a documented, honest negative result and as an example of joint calibration.
 
+## Replay evaluation (v0.4.0)
+
+`oes-resilience replay` scores a telemetry replay against a preregistration. The replay is JSONL, with 512 channels, a timezone-aware timestamp, a regime and event labels per frame. The preregistration is a JSON file, locked and hashed *before* scoring, that fixes the detectors, the score spec, the event-hit, localisation and latency rules, and the threshold policy. The evaluator was folded in from the private `oes512-replay-eval` pilot harness. It reuses `core.score_signals` for `oes32` and the plugin API for everything else (`maxabs`, `zscore`, `ewma`, `cusum`, `oes32+ewma`, and optional or plugin detectors). For each detector and regime it reports event recall and missed event IDs, FP frames (rate, per 10 minutes and alarm episodes), block-localisation precision, recall and IoU, and detection latency. It can also score an optional `incumbent` alarm column. See [docs/replay.md](docs/replay.md).
+
+The threshold policies work as follows:
+
+- **Calibrated (default).** The preregistration names an event-free calibration replay by SHA-256 and a target FP rate (1%). Each detector's threshold is set with the same `calibrate_threshold` rule used by `compare` and `stress`, applied with frame units. The procedure and its input are preregistered; the numbers follow from them.
+- **Fixed (kept for compatibility).** The pilot's schema-1 preregistrations (both detectors at 0.50) still run. The report is then marked `comparison_is_calibrated: false` and carries a **fairness note**: equal numeric thresholds on detectors with different score scales do not make a fair comparison.
+
+**Results on the deterministic example replay (SYNTHETIC).** The replay has 240 frames, 60 per regime; Localized Burst has two single-block events and Global Shock has one. The calibration replay has 600 frames. CI checks these results byte for byte in `examples/replay_scorecard.csv` and `examples/replay_fixed050_scorecard.csv`.
+
+| detector | threshold (calibrated, 1% FP) | Noisy FP frame rate | Burst recall / FP rate / IoU | Shock recall / FP rate / IoU |
+|---|---|---|---|---|
+| `oes32` | 0.450 | 0.017 (1/60) | 1.00 / 0.000 / 1.00 | 1.00 / 0.000 / 1.00 |
+| `maxabs` | 0.650 | 0.000 | 1.00 / 0.000 / 1.00 | 1.00 / 0.000 / 1.00 |
+| `zscore` | 1.17 | 0.067 (4/60) | 1.00 / 0.000 / 1.00 | 1.00 / 0.000 / 1.00 |
+| `ewma` | 94.6 | 0.083 | 1.00 / 0.125 / 0.56 | 1.00 / 0.130 / 0.46 |
+| `cusum` | 8.6·10³ | 0.000 | **0.00** / 0.000 / 0.00 | **0.00** / 0.000 / 0.00 |
+| `oes32+ewma` | 0.997 | 0.083 | 1.00 / 0.125 / 0.67 | 1.00 / 0.130 / 0.46 |
+
+With the fixed 0.50/0.50 preregistration, the pilot's numbers are reproduced exactly: `oes32` has 0 Noisy FP frames, while `maxabs` flags 58 of 60 Noisy frames (0.967). That gap is mostly a threshold-scale effect, so it should not be read as `oes32` being better. Under calibration, `maxabs` also has 0 Noisy FP frames.
+
+**Caveats.**
+
+- This replay is tiny and easy. The bursts add about +0.8 to one block and the shock adds +2.0 to every channel, against noise with a standard deviation of 0.05 (Noisy: mean 0.25, standard deviation 0.10).
+- The ≤1% FP holds on the calibration replay by construction; on the evaluation replay it is 1.7% for `oes32` and 6.7% for `zscore`.
+- The temporal detectors (`ewma`, `cusum`, the hybrid) treat the whole replay as one stream with a 16-frame warm-up. The Noisy regime is labelled normal but shifts the mean, so it inflates their calibrated thresholds: CUSUM misses every event, and EWMA raises FP frames after events. This is a measured limitation of applying stream detectors to a regime-segmented replay, and it was not tuned away.
+- No real replay has been run (**UNRUN**). Any future real-replay result must carry provenance (source, export window, transformation, labelling, the three SHA-256 hashes, lock time) and describes that replay only.
+
 ## Install and run
 
 Requires Python 3.10 or newer and NumPy.
@@ -194,6 +223,9 @@ oes-resilience compare --detectors oes32,ewma --tracks stream --streams 500
 oes-resilience stress --verify           # stress scorecard (JSON, CSV, Markdown), hash re-check
 oes-resilience stress --burst-mean 0.3 --correlated-mean 0.3 --prefix stress_burst03
 oes-resilience stress --scenarios dropout,heavy_tail --t-df 5 --dropout-fraction 0.3
+oes-resilience replay --write-example-inputs /tmp/rp   # deterministic example replay + calibration replay
+oes-resilience replay --input /tmp/rp/synthetic_replay.jsonl --prereg examples/replay_prereg_calibrated.json \
+    --calibration /tmp/rp/synthetic_calibration.jsonl --verify
 oes-resilience --help
 ```
 
@@ -208,29 +240,30 @@ Without installing, run `python -m oes_resilience …` from the repository root 
 | `<prefix>_manifest.json` | yes | SHA-256 of the two files above |
 | `<prefix>_run_metadata.json` | no | UTC time, Python, platform, NumPy, elapsed time, argv |
 
-`compare` writes `<prefix>_scorecard.json`, `<prefix>_scorecard.csv` and `<prefix>_manifest.json`, which are deterministic. It also writes `<prefix>_scorecard.md`, `<prefix>_timing.json` and `<prefix>_run_metadata.json`, which include machine-dependent timings. Its options include `--detectors`, `--tracks`, `--target-fp`, `--streams`, `--fit-streams`, `--steps`, `--warmup`, `--plugins` (load entry-point detectors) and `--verify`. `stress` writes the same set of files (default prefix `oes_resilience_stress`). It also takes `--scenarios` and the perturbation parameters `--t-df`, `--burst-mean`, `--dropout-fraction`, `--saturated-fraction`, `--clip-level`, `--narrow-width`, `--drift-slope`, `--step-size`, `--correlated-blocks`, `--correlated-mean` and `--global-offset`.
+`compare` writes `<prefix>_scorecard.json`, `<prefix>_scorecard.csv` and `<prefix>_manifest.json`, which are deterministic. It also writes `<prefix>_scorecard.md`, `<prefix>_timing.json` and `<prefix>_run_metadata.json`, which include machine-dependent timings. Its options include `--detectors`, `--tracks`, `--target-fp`, `--streams`, `--fit-streams`, `--steps`, `--warmup`, `--plugins` (load entry-point detectors) and `--verify`. `stress` writes the same set of files (default prefix `oes_resilience_stress`). It also takes `--scenarios` and the perturbation parameters `--t-df`, `--burst-mean`, `--dropout-fraction`, `--saturated-fraction`, `--clip-level`, `--narrow-width`, `--drift-slope`, `--step-size`, `--correlated-blocks`, `--correlated-mean` and `--global-offset`. `replay` writes `<prefix>_report.json`, `<prefix>_scorecard.csv` and `<prefix>_manifest.json`, which are deterministic, plus `<prefix>_run_metadata.json` (default prefix `oes_resilience_replay`). Its options are `--input`, `--prereg`, `--calibration`, `--plugins`, `--verify` and `--write-example-inputs DIR`.
 
-**Exit codes:** `0` ok · `1` test failure or I/O error · `2` invalid arguments or configuration · `3` `run --strict` and an expectation check failed · `4` `compare --verify` or `stress --verify` found a hash mismatch.
+**Exit codes:** `0` ok · `1` test failure or I/O error · `2` invalid arguments or configuration · `3` `run --strict` and an expectation check failed · `2` also covers invalid replay or preregistration files · `4` `compare --verify`, `stress --verify` or `replay --verify` found a hash mismatch.
 
-**Library use:** `assess_signal(signal, Config())` scores and classifies any 512-value array. `run_benchmark`, `threshold_sweep`, `run_compare` and `run_stress` return JSON-ready dictionaries. `create_detector("ewma").detect(stream)` returns a `DetectionResult`, and `register_detector` adds your own detector (see [docs/detector-api.md](docs/detector-api.md)).
+**Library use:** `assess_signal(signal, Config())` scores and classifies any 512-value array. `run_benchmark`, `threshold_sweep`, `run_compare`, `run_stress` and `build_replay_report` (with `load_replay` and `load_preregistration`) return JSON-ready dictionaries. `create_detector("ewma").detect(stream)` returns a `DetectionResult`, and `register_detector` adds your own detector (see [docs/detector-api.md](docs/detector-api.md)).
 
 ## Tests
 
 ```bash
 python -m pip install -e ".[test]"
-python -m pytest --cov            # 154 tests (+88 subtests); coverage gate 90%
+python -m pytest --cov            # 189 tests (+88 subtests; 1 skipped without scikit-learn); coverage gate 90%
 python -m oes_resilience test     # stdlib unittest runner, no pytest needed (source checkout; else pass --tests-dir)
 ```
 
-CI runs `ruff check`, pytest with the coverage gate, a byte-for-byte check of the example CSVs (including the compare and stress scorecards), and a pip-install smoke test on Python 3.10–3.13. A separate job installs scikit-learn and tests the optional Isolation Forest. The tests cover the scoring formula worked by hand, block mapping for arbitrary block sizes, seed stability, validation errors, metric edge cases, the sweep matching separate runs, reproducible exports and the CLI exit codes. [REVIEW.md](REVIEW.md) is the review of the original prototype (kept in [`original/`](original/)) that this release is based on.
+CI runs `ruff check`, pytest with the coverage gate, a byte-for-byte check of the example CSVs (including the compare, stress and replay scorecards), and a pip-install smoke test on Python 3.10–3.13. A separate job installs scikit-learn and tests the optional Isolation Forest. The tests cover the scoring formula worked by hand, block mapping for arbitrary block sizes, seed stability, validation errors, metric edge cases, the sweep matching separate runs, reproducible exports, the CLI exit codes, and replay input hardening and preregistration locking. [REVIEW.md](REVIEW.md) is the review of the original prototype (kept in [`original/`](original/)) that this release is based on.
 
 ## Roadmap
 
 - **v0.2.0 (released):** detector plugin API; robust z-score, EWMA and CUSUM baselines (optional Isolation Forest); multi-step stream track; calibrated comparative scorecard.
 - **v0.3.0 (released):** stress suite with seeded ground truth, mask-aware missing-data scoring, the `oes32+ewma` hybrid, and robustness metrics (recall retention and FP inflation with Wilson intervals).
-- **v0.4 (planned):** adapters for the public NASA SMAP/MSL telemetry anomaly datasets. The data will be downloaded from its public source, not bundled.
+- **v0.4.0 (released):** replay evaluation against a hashed preregistration, with calibrated thresholds by default, the plugin detectors, and the `maxabs` baseline.
+- **v0.5 (planned):** adapters for the public NASA SMAP/MSL telemetry anomaly datasets. The data will be downloaded from its public source, not bundled.
 
-v0.4 is not implemented yet, and no results are claimed for it.
+v0.5 is not implemented yet, and no results are claimed for it.
 
 ## Limitations
 

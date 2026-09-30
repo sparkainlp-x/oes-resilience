@@ -1,0 +1,26 @@
+{
+  "schema_version": 2,
+  "protocol_id": "oes-resilience-replay-synthetic-calibrated-v1",
+  "locked_at": "2026-09-30T18:45:00-04:00",
+  "detectors": ["oes32", "maxabs", "zscore", "ewma", "cusum", "oes32+ewma"],
+  "warmup": 16,
+  "threshold_policy": {
+    "mode": "calibrated",
+    "target_fp": 0.01,
+    "unit": "frame",
+    "calibration_sha256": "1293face1007a9dee9e25d951dd9942ae1da4e0f75822a5cad781948e04453dd"
+  },
+  "score_spec": {
+    "channel_count": 512,
+    "block_size": 32,
+    "weights": {
+      "peak_abs": 0.45,
+      "rms": 0.35,
+      "mean_abs": 0.20
+    },
+    "comparison": ">="
+  },
+  "event_hit_rule": "any_alert_frame_during_event",
+  "localization_rule": "framewise_micro_precision_recall_iou",
+  "latency_rule": "first_alert_frame_minus_first_event_frame_ms"
+}

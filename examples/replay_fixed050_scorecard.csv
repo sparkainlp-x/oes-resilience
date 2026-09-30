@@ -1,0 +1,9 @@
+detector,threshold,threshold_source,regime,frame_count,event_count,detected_event_count,event_recall,missed_event_ids,no_event_frame_count,false_positive_frame_count,false_positive_frame_rate,false_positive_frames_per_10min,false_positive_alarm_episodes_per_10min,localization_precision,localization_recall,localization_iou,mean_latency_ms,median_latency_ms
+oes32,0.5,fixed,Stable,60,0,0,,,60,0,0.0,0.0,0.0,,,,,
+oes32,0.5,fixed,Noisy,60,0,0,,,60,0,0.0,0.0,0.0,,,,,
+oes32,0.5,fixed,Localized Burst,60,2,2,1.0,,48,0,0.0,0.0,0.0,1.0,1.0,1.0,0.0,0.0
+oes32,0.5,fixed,Global Shock,60,1,1,1.0,,54,0,0.0,0.0,0.0,1.0,1.0,1.0,0.0,0.0
+maxabs,0.5,fixed,Stable,60,0,0,,,60,0,0.0,0.0,0.0,,,,,
+maxabs,0.5,fixed,Noisy,60,0,0,,,60,58,0.966666666667,580.0,30.0,0.0,,0.0,,
+maxabs,0.5,fixed,Localized Burst,60,2,2,1.0,,48,0,0.0,0.0,0.0,1.0,1.0,1.0,0.0,0.0
+maxabs,0.5,fixed,Global Shock,60,1,1,1.0,,54,0,0.0,0.0,0.0,1.0,1.0,1.0,0.0,0.0
