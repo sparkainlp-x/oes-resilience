@@ -6,6 +6,26 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-30
+
+### Added
+- Package layout (`oes_resilience/`: `core`, `detectors`, `streams`, `scorecard`). Run the CLI with `python -m oes_resilience` or `oes-resilience`. The v0.1 API is available from `oes_resilience` and `oes_resilience.core`.
+- Detector plugin API: a `Detector` base class with `fit()` and `detect()` returning a common `DetectionResult` (scores per block, detected blocks, status, explanation). Also a registry (`register_detector`, `create_detector`, ...) and entry-point plugins in the `oes_resilience.detectors` group. See `docs/detector-api.md`.
+- Detectors:
+  - `oes32`, the reference; it reproduces v0.1 scores exactly.
+  - `zscore`, a robust z-score of block RMS against a median/MAD baseline from clean frames.
+  - `ewma` and `cusum`, temporal detectors on block means standardised against each stream's warm-up.
+  - `iforest`, an optional Isolation Forest (extra: `oes-resilience[iforest]`). The core stays NumPy-only.
+- Multi-step synthetic streams (T × 512) with a recorded onset step: `stream_stable`, `stream_noisy`, `stream_burst`, `stream_shift` (a +0.02 persistent shift on one block) and `stream_shock`. The single-frame v0.1 regimes are unchanged.
+- `compare` subcommand: fits all detectors on the same clean data and calibrates every threshold the same way on held-out clean data (target FP per clean regime, default 1%).
+  - It writes a deterministic scorecard (JSON and CSV, with a hash manifest). The Markdown report and timing JSON include machine-dependent CPU time per frame.
+  - Metrics: FP rate, early-alarm rate, recall, exact localization, mean IoU, and detection latency in steps.
+  - `--verify` reruns the comparison and exits with code 4 if the hash differs.
+- `examples/compare_scorecard.csv`; CI checks that it is reproduced byte for byte.
+
+### Unchanged
+- The v0.1 regimes, scoring, seeds and outputs. `examples/baseline_summary.csv` and `examples/sweep_summary.csv` are still reproduced byte for byte.
+
 ## [0.1.0] - 2026-09-30
 
 First public release, as OES-Resilience. It is a rewrite of the single-file prototype

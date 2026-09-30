@@ -1,10 +1,7 @@
-#!/usr/bin/env python3
 # Copyright (C) 2026 Jean-François Brisson / Spark AI NLP. SPDX-License-Identifier: AGPL-3.0-only
-"""OES-Resilience -- an open, reproducible benchmark for multichannel telemetry anomaly detection.
+"""OES-Resilience core: the v0.1 single-frame benchmark harness and the CLI.
 
-Version 0.1.0.
-
-This release contains the benchmark harness and one transparent reference
+The v0.1 harness contains the benchmark and one transparent reference
 detector, "OES32": synthetic 512-channel signals are generated under four
 regimes, split into sixteen 32-channel blocks, and every block is scored with
 
@@ -33,7 +30,7 @@ Outputs (per run):
     <prefix>_manifest.json  deterministic SHA-256 hashes of the two files above
     <prefix>_run_metadata.json  non-deterministic run info (time, platform, ...)
 
-Only NumPy is required. ``python oes_resilience.py --help`` for the CLI.
+Only NumPy is required. ``python -m oes_resilience --help`` for the CLI.
 """
 
 from __future__ import annotations
@@ -59,7 +56,8 @@ from typing import Any
 
 import numpy as np
 
-__version__ = "0.1.0"
+from ._version import __version__
+
 PROJECT = "OES-Resilience"
 
 # Exit codes.
@@ -67,7 +65,10 @@ EXIT_OK = 0
 EXIT_FAILURE = 1  # test failure or unexpected runtime error
 EXIT_USAGE = 2  # invalid arguments / configuration (same code argparse uses)
 EXIT_EXPECTATIONS = 3  # --strict and a documented expectation was not met
+EXIT_NOT_REPRODUCIBLE = 4  # compare --verify: a rerun produced a different hash
 
+#: Default location of the test suite (a source checkout: <repo>/tests).
+DEFAULT_TESTS_DIR = Path(__file__).resolve().parents[1] / "tests"
 #: Decimal places used when floats are written to the deterministic outputs.
 FLOAT_DECIMALS = 12
 #: Trials generated and scored per chunk (bounds memory to chunk * channels).
@@ -300,18 +301,33 @@ class Event:
 # --------------------------------------------------------------------------
 
 
-def trial_seed_sequence(seed: int, regime: Regime | str, trial_index: int) -> np.random.SeedSequence:
-    """Keyed seed for one trial; stable regardless of trial count or order."""
+#: Purpose keys for seed streams that must never overlap the v0.1 evaluation
+#: trials (which use the 2-tuple spawn key ``(regime_key, trial_index)``).
+PURPOSE_FIT = 100
+PURPOSE_CALIBRATION = 101
+
+
+def trial_seed_sequence(
+    seed: int, regime: Regime | str, trial_index: int, purpose: int | None = None
+) -> np.random.SeedSequence:
+    """Keyed seed for one trial; stable regardless of trial count or order.
+
+    ``purpose=None`` gives the v0.1 evaluation stream ``(regime_key, i)``;
+    any other purpose key gives the disjoint stream ``(purpose, regime_key, i)``
+    (used for detector fitting and threshold calibration).
+    """
     regime = Regime(regime)
-    return np.random.SeedSequence(
-        entropy=_require_int("seed", seed, 0),
-        spawn_key=(REGIME_KEYS[regime], _require_int("trial_index", trial_index, 0)),
-    )
+    key: tuple[int, ...] = (REGIME_KEYS[regime], _require_int("trial_index", trial_index, 0))
+    if purpose is not None:
+        key = (_require_int("purpose", purpose, 0), *key)
+    return np.random.SeedSequence(entropy=_require_int("seed", seed, 0), spawn_key=key)
 
 
-def trial_rng(seed: int, regime: Regime | str, trial_index: int) -> np.random.Generator:
-    """Independent generator for one ``(seed, regime, trial_index)``."""
-    return np.random.default_rng(trial_seed_sequence(seed, regime, trial_index))
+def trial_rng(
+    seed: int, regime: Regime | str, trial_index: int, purpose: int | None = None
+) -> np.random.Generator:
+    """Independent generator for one ``(seed, regime, trial_index[, purpose])``."""
+    return np.random.default_rng(trial_seed_sequence(seed, regime, trial_index, purpose))
 
 
 def generate_signal(
@@ -340,13 +356,14 @@ def generate_signal(
 
 
 def generate_batch(
-    regime: Regime | str, trial_indices: Sequence[int] | range, config: Config
+    regime: Regime | str, trial_indices: Sequence[int] | range, config: Config, purpose: int | None = None
 ) -> tuple[np.ndarray, np.ndarray]:
     """Generate signals for the given trial indices.
 
     Returns ``(signals, truth)`` where ``signals`` has shape
     ``(n, channels)`` and ``truth`` is a boolean ``(n, blocks)`` mask of the
-    blocks each trial is expected to activate.
+    blocks each trial is expected to activate. ``purpose`` selects the seed
+    stream (see :func:`trial_seed_sequence`).
     """
     regime = Regime(regime)
     n = len(trial_indices)
@@ -356,7 +373,8 @@ def generate_batch(
     if expectation is Expectation.ALL_BLOCKS:
         truth[:] = True
     for row, trial_index in enumerate(trial_indices):
-        signal, event = generate_signal(regime, trial_rng(config.seed, regime, trial_index), config)
+        rng = trial_rng(config.seed, regime, trial_index, purpose)
+        signal, event = generate_signal(regime, rng, config)
         signals[row] = signal
         if event is not None:
             truth[row, list(event.blocks(config.block_size))] = True
@@ -967,7 +985,7 @@ def build_parser() -> argparse.ArgumentParser:
         description=f"{PROJECT} v{__version__}: reproducible synthetic benchmark for multichannel "
         "telemetry anomaly detection (OES32 reference detector).",
         epilog="Exit codes: 0 ok, 1 test failure/runtime error, 2 invalid arguments, "
-        "3 --strict and an expectation check failed.",
+        "3 --strict and an expectation check failed, 4 compare --verify hash mismatch.",
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument("--test", action="store_true", help="alias for the 'test' subcommand")
@@ -986,9 +1004,13 @@ def build_parser() -> argparse.ArgumentParser:
     sweep.add_argument("--step", type=float, default=0.05, help="threshold step (default 0.05)")
     sweep.add_argument("--thresholds", type=_threshold_list, help="explicit comma-separated thresholds")
 
+    from .scorecard import add_compare_parser  # lazy: scorecard imports this module
+
+    add_compare_parser(sub)
+
     test = sub.add_parser("test", help="run the unit-test suite (unittest discovery)")
     test.add_argument(
-        "--tests-dir", type=Path, default=Path(__file__).resolve().parent / "tests",
+        "--tests-dir", type=Path, default=DEFAULT_TESTS_DIR,
         help="directory containing test_*.py (default: ./tests next to this file)",
     )
     test.add_argument("-v", "--verbose", action="store_true")
@@ -1064,7 +1086,7 @@ def _cmd_sweep(args: argparse.Namespace, argv: Sequence[str]) -> int:
     return EXIT_OK
 
 
-COMMANDS = frozenset({"run", "sweep", "test"})
+COMMANDS = frozenset({"run", "sweep", "compare", "test"})
 TOP_LEVEL_FLAGS = frozenset({"-h", "--help", "--version", "--test"})
 
 
@@ -1079,12 +1101,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     except SystemExit as exc:  # argparse: --help/--version (0) or usage error (2)
         return int(exc.code or 0)
     if args.command is None:  # only reachable via the legacy --test flag
-        return run_tests(Path(__file__).resolve().parent / "tests")
+        return run_tests(DEFAULT_TESTS_DIR)
     try:
         if args.command == "test":
             return run_tests(args.tests_dir, args.verbose)
         if args.command == "run":
             return _cmd_run(args, argv)
+        if args.command == "compare":
+            from .scorecard import cmd_compare
+
+            return cmd_compare(args, argv)
         return _cmd_sweep(args, argv)
     except (TypeError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
@@ -1092,7 +1118,3 @@ def main(argv: Sequence[str] | None = None) -> int:
     except OSError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return EXIT_FAILURE
-
-
-if __name__ == "__main__":
-    sys.exit(main())

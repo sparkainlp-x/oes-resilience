@@ -11,6 +11,7 @@ import csv
 import hashlib
 import io
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -25,7 +26,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-import oes_resilience as oes  # noqa: E402
+import oes_resilience  # noqa: E402
+from oes_resilience import core as oes  # noqa: E402
 
 SMALL = 60  # trials for fast tests
 
@@ -652,8 +654,9 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(quiet_main(["--help"])[0], 0)
         code, out, _ = quiet_main(["--version"])
         self.assertEqual(code, 0)
-        self.assertIn("0.1.0", out)
-        self.assertEqual(oes.__version__, "0.1.0")
+        self.assertIn(oes.__version__, out)
+        self.assertEqual(oes_resilience.__version__, oes.__version__)
+        self.assertRegex(oes.__version__, r"^0\.2\.0")
 
     def test_os_error_exit_1(self):
         blocker = self.tmp / "file"
@@ -685,11 +688,13 @@ class TestCLI(unittest.TestCase):
         fake.assert_called_once()
 
     def test_subprocess_exit_codes(self):
-        script = str(ROOT / "oes_resilience.py")
-        ok = subprocess.run([sys.executable, script, "run", "--trials", "5", "--quiet", "--out-dir", str(self.tmp)],
-                            capture_output=True, text=True)
+        env = {**os.environ, "PYTHONPATH": str(ROOT)}
+        ok = subprocess.run([sys.executable, "-m", "oes_resilience", "run", "--trials", "5", "--quiet",
+                             "--out-dir", str(self.tmp)],
+                            capture_output=True, text=True, env=env)
         self.assertEqual(ok.returncode, 0, ok.stderr)
-        bad = subprocess.run([sys.executable, script, "run", "--threshold", "nan"], capture_output=True, text=True)
+        bad = subprocess.run([sys.executable, "-m", "oes_resilience", "run", "--threshold", "nan"],
+                             capture_output=True, text=True, env=env)
         self.assertEqual(bad.returncode, 2)
         self.assertNotIn("Traceback", bad.stderr)
 
