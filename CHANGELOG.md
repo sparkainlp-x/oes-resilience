@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- **Preregistered protocol for a blind evaluation on real public telemetry** (NASA SMAP/MSL, Hundman et al. 2018): `reports/smap_msl_protocol.json` and `reports/smap_msl_protocol.md`, locked before any method was scored on the test split. It fixes the train-only calibration rule and targets, the five methods and their parameters, the event-level metrics, the bootstrap/Wilcoxon/Holm analysis, the seed and the success criteria.
+- `oes_resilience.smap_msl` and CLI `oes-resilience smap-msl {fetch,verify,train-diagnostics,evaluate}`: download into a cache outside the repository with per-file SHA-256 verification against `reports/smap_msl_data.sha256` (raw data is never bundled), univariate adapter, train-only calibration and the preregistered analysis. `scripts/fetch_smap_msl.py` wraps the fetch step.
+- `tests/test_smap_msl.py` on tiny synthetic fixtures (CI never downloads the dataset), including a blindness test: moving every test label leaves every threshold unchanged.
+
 ## [0.4.0] - 2026-09-30
 
 ### Added

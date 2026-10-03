@@ -11,3 +11,7 @@ dist/
 htmlcov/
 .ruff_cache/
 outputs/
+# NASA SMAP/MSL raw data must never be committed (download with scripts/fetch_smap_msl.py)
+*.npy
+smap_msl_download.zip
+data/smap_msl/

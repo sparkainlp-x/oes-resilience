@@ -7,7 +7,9 @@ or medical device, and no claims about any of those.
 Modules: :mod:`.core` (v0.1 single-frame benchmark, OES32 scoring, CLI),
 :mod:`.detectors` (plugin API and detectors), :mod:`.streams` (multi-step streams),
 :mod:`.scorecard` (calibrated detector comparison), :mod:`.stress` (robustness stress suite),
-:mod:`.replay` (preregistered evaluation of timestamped replay files).
+:mod:`.replay` (preregistered evaluation of timestamped replay files),
+:mod:`.smap_msl` (v0.5: adapter and preregistered evaluation on the real public NASA SMAP/MSL dataset;
+the data is downloaded and hash-verified, never bundled).
 """
 
 from ._version import __version__
