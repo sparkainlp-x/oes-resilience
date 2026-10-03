@@ -8,7 +8,7 @@
 [![Python 3.10–3.13](https://img.shields.io/badge/python-3.10%E2%80%933.13-blue.svg)](.github/workflows/tests.yml)
 [![Status: research prototype](https://img.shields.io/badge/status-research%20prototype-orange.svg)](#what-it-is-not)
 
-Version 0.4.0 adds [replay evaluation](#replay-evaluation-v040). It scores a recorded or synthetic telemetry replay against a hashed preregistration using the same detectors, and by default every threshold is calibrated to the shared ~1% FP budget. Version 0.3.0 added a seeded [stress suite](#stress-suite-v030) with robustness metrics. It covers drift, baseline steps, missing channels, clipping and saturation, heavy-tailed noise, narrow and cross-block events, global shift plus burst, and correlated blocks. That release also added mask-aware scoring for missing data and an `oes32+ewma` hybrid detector, which measurably does not beat EWMA alone. Version 0.2.0 added the detector plugin API, robust z-score, EWMA and CUSUM baselines (plus an optional Isolation Forest), multi-step synthetic streams and a calibrated [detector comparison](#detector-comparison-v020). Both build on the v0.1.0 benchmark harness, four **synthetic** single-frame regimes and the OES32 reference detector, whose v0.1 results below are unchanged. NumPy is the only required dependency. Everything is synthetic: no real telemetry has been replayed. Adapters for public real-world datasets are on the [roadmap](#roadmap); they are not in this release.
+Version 0.5.0 adds the first evaluation on **real public telemetry**: a [blind, preregistered comparison on the NASA SMAP/MSL anomaly dataset](#real-public-telemetry-nasa-smapmsl-v050) (Hundman et al. 2018). The protocol was locked and pushed before any test data was scored. Under it, OES32 did **not** meet its pre-stated success criterion: it beat only EWMA on SMAP, and `maxabs` and CUSUM scored a higher pooled F1 (not significantly). Version 0.4.0 added [replay evaluation](#replay-evaluation-v040). It scores a recorded or synthetic telemetry replay against a hashed preregistration using the same detectors, and by default every threshold is calibrated to the shared ~1% FP budget. Version 0.3.0 added a seeded [stress suite](#stress-suite-v030) with robustness metrics. It covers drift, baseline steps, missing channels, clipping and saturation, heavy-tailed noise, narrow and cross-block events, global shift plus burst, and correlated blocks. That release also added mask-aware scoring for missing data and an `oes32+ewma` hybrid detector, which measurably does not beat EWMA alone. Version 0.2.0 added the detector plugin API, robust z-score, EWMA and CUSUM baselines (plus an optional Isolation Forest), multi-step synthetic streams and a calibrated [detector comparison](#detector-comparison-v020). Both build on the v0.1.0 benchmark harness, four **synthetic** single-frame regimes and the OES32 reference detector, whose v0.1 results below are unchanged. NumPy is the only required dependency. Everything except the clearly labelled v0.5 SMAP/MSL section is synthetic, and the synthetic numbers say nothing about real telemetry.
 
 ## What it is
 
@@ -23,7 +23,7 @@ Version 0.4.0 adds [replay evaluation](#replay-evaluation-v040). It scores a rec
 - **Not GPS or navigation.** It does not estimate position, timing or trajectories.
 - **Not a physical sensor or device.** It reads no hardware, and all signals are generated synthetically by NumPy.
 - **Not a medical, safety or certified system,** and not an operational monitoring product.
-- **Not evidence about real telemetry.** The numbers below describe how this software behaves on its own synthetic regimes. They are not performance claims about any real system or dataset.
+- **Not evidence about real telemetry, except where labelled.** All results except the v0.5 SMAP/MSL section describe how this software behaves on its own synthetic regimes. They are not performance claims about any real system or dataset. The SMAP/MSL section describes one public, labelled dataset under one locked protocol, and nothing beyond it.
 
 ## Synthetic regimes (v0.1.0)
 
@@ -206,7 +206,104 @@ With the fixed 0.50/0.50 preregistration, the pilot's numbers are reproduced exa
 - This replay is tiny and easy. The bursts add about +0.8 to one block and the shock adds +2.0 to every channel, against noise with a standard deviation of 0.05 (Noisy: mean 0.25, standard deviation 0.10).
 - The ≤1% FP holds on the calibration replay by construction; on the evaluation replay it is 1.7% for `oes32` and 6.7% for `zscore`.
 - The temporal detectors (`ewma`, `cusum`, the hybrid) treat the whole replay as one stream with a 16-frame warm-up. The Noisy regime is labelled normal but shifts the mean, so it inflates their calibrated thresholds: CUSUM misses every event, and EWMA raises FP frames after events. This is a measured limitation of applying stream detectors to a regime-segmented replay, and it was not tuned away.
-- No real replay has been run (**UNRUN**). Any future real-replay result must carry provenance (source, export window, transformation, labelling, the three SHA-256 hashes, lock time) and describes that replay only.
+- No real replay in this JSONL format has been run (**UNRUN**). The v0.5 SMAP/MSL evaluation below uses its own adapter, not the replay format. Any future real-replay result must carry provenance (source, export window, transformation, labelling, the three SHA-256 hashes, lock time) and describes that replay only.
+
+## Real public telemetry: NASA SMAP/MSL (v0.5.0)
+
+> **REAL DATA.** This section reports measurements on public, labelled spacecraft telemetry. It is kept separate from the synthetic results above, which it does not change. It covers one dataset under one locked protocol and is not a claim about any operational system.
+
+**Data.** The SMAP satellite and MSL (Curiosity rover) telemetry anomaly dataset released with Hundman et al., "Detecting Spacecraft Anomalies Using LSTMs and Nonparametric Dynamic Thresholding", *KDD '18*, [doi:10.1145/3219819.3219845](https://doi.org/10.1145/3219819.3219845) (labels and code: [khundman/telemanom](https://github.com/khundman/telemanom)). It has 54 unique SMAP channels with 68 merged labelled events, and 27 MSL channels with 36 events. No explicit open-data licence is attached to the files (the Kaggle mirror says "Data files © Original Authors"). So **no raw data is in this repository**. `oes-resilience smap-msl fetch` (or `scripts/fetch_smap_msl.py`) downloads it into a cache outside the repository and checks all 165 extracted files against [`reports/smap_msl_data.sha256`](reports/smap_msl_data.sha256). If you use the data, cite Hundman et al. (2018).
+
+**Protocol (locked before any test-split scoring).** The full text is in [`reports/smap_msl_protocol.md`](reports/smap_msl_protocol.md). The machine-readable file, [`reports/smap_msl_protocol.json`](reports/smap_msl_protocol.json) (SHA-256 `927cf78f…8ea3`), was committed in [`fdf9905`](https://github.com/sparkainlp-x/oes-resilience/commit/fdf99050046a9b1369eb5d2988ff7d5d8563e784) and pushed with CI green on all matrix versions before the evaluation ran. In short:
+
+- **Split.** The dataset's own temporal train/test split; train is anomaly-free.
+- **Input.** Every method gets the same input: the telemetry value (column 0) standardised with the train mean and std.
+- **Methods.**
+  - `oes32`: the reference score over a trailing 32-sample window.
+  - `maxabs`: max|z| over the same window.
+  - `zscore`: pointwise |z|.
+  - `ewma` (λ 0.2) and `cusum` (k 0.5): the built-in recursions.
+- **Thresholds.** Calibrated per channel on **train only** with the shared `calibrate_threshold` rule, at a 1% train false-alarm target (0.1% and 0 as secondary targets). No test label was used for any choice.
+- **Primary metric.** Pooled event-level F1 per dataset. An event counts as detected if any alarm falls inside its labelled window. A false alarm is a run of consecutive alarms that touches no window.
+- **Statistics.** 95% bootstrap CIs over channels (10,000 resamples, seed 42). Each baseline is compared with a paired bootstrap and a Wilcoxon signed-rank test over channels, Holm-corrected across the 8 primary comparisons.
+- **Success criterion.** OES32 must beat all four baselines on at least one dataset and lose to none.
+
+**Nothing was changed after the lock.** The results in [`reports/smap_msl_results/`](reports/smap_msl_results/) come from one run of the lock-commit code (its package version string was still 0.4.0). That folder holds the JSON, the summary, comparison and per-channel CSVs, an SVG plot and `SHA256SUMS`. The run used `--verify`, so the results were recomputed and found byte-identical.
+
+**Primary results** (all channels, train-calibrated 1% target):
+
+![Pooled event-level F1 on SMAP and MSL](reports/smap_msl_results/smap_msl_event_f1.svg)
+
+**SMAP** (54 channels, 68 events)
+
+| method | event precision | event recall | **event F1** [95% CI] | point-adjusted F1 (secondary) | median latency (samples) | false alarms / 1k samples | alarm rate on unlabelled test samples |
+|---|---|---|---|---|---|---|---|
+| `oes32` | 0.263 (46/175) | 0.676 (46/68) | **0.379** [0.274, 0.522] | 0.577 | 29 | 0.30 | 0.104 |
+| `maxabs` | 0.537 (29/54) | 0.426 (29/68) | **0.475** [0.329, 0.646] | 0.470 | 22 | 0.06 | 0.097 |
+| `zscore` | 0.032 (46/1443) | 0.676 (46/68) | **0.061** [0.032, 0.156] | 0.589 | 27 | 3.21 | 0.104 |
+| `ewma` | 0.046 (53/1151) | 0.779 (53/68) | **0.087** [0.061, 0.132] | 0.568 | 22 | 2.52 | 0.146 |
+| `cusum` | 0.094 (60/641) | 0.882 (60/68) | **0.169** [0.122, 0.256] | 0.434 | 23 | 1.33 | 0.364 |
+
+**MSL** (27 channels, 36 events)
+
+| method | event precision | event recall | **event F1** [95% CI] | point-adjusted F1 (secondary) | median latency (samples) | false alarms / 1k samples | alarm rate on unlabelled test samples |
+|---|---|---|---|---|---|---|---|
+| `oes32` | 0.316 (25/79) | 0.694 (25/36) | **0.435** [0.333, 0.576] | 0.326 | 17 | 0.73 | 0.199 |
+| `maxabs` | 0.500 (18/36) | 0.500 (18/36) | **0.500** [0.351, 0.657] | 0.252 | 13.5 | 0.24 | 0.195 |
+| `zscore` | 0.152 (25/165) | 0.694 (25/36) | **0.249** [0.178, 0.389] | 0.374 | 12 | 1.90 | 0.187 |
+| `ewma` | 0.132 (26/197) | 0.722 (26/36) | **0.223** [0.127, 0.423] | 0.335 | 10 | 2.32 | 0.238 |
+| `cusum` | 0.391 (27/69) | 0.750 (27/36) | **0.514** [0.387, 0.681] | 0.263 | 4 | 0.57 | 0.410 |
+
+**OES32 vs each baseline** (paired; Holm correction over these 8 rows):
+
+| dataset | baseline | OES32 F1 | baseline F1 | ΔF1 [paired 95% CI] | paired bootstrap p | Wilcoxon p (non-zero pairs) | Holm p | verdict |
+|---|---|---|---|---|---|---|---|---|
+| SMAP | `maxabs` | 0.379 | 0.475 | −0.097 [−0.243, +0.039] | 0.180 | 0.047 (21) | 0.330 | no significant difference |
+| SMAP | `zscore` | 0.379 | 0.061 | +0.318 [+0.200, +0.448] | <0.001 | 0.164 (21) | 0.929 | no significant difference |
+| SMAP | `ewma` | 0.379 | 0.087 | +0.292 [+0.192, +0.426] | <0.001 | 0.003 (22) | 0.021 | **oes32 better** |
+| SMAP | `cusum` | 0.379 | 0.169 | +0.209 [+0.113, +0.326] | <0.001 | 0.918 (28) | 1.000 | no significant difference |
+| MSL | `maxabs` | 0.435 | 0.500 | −0.065 [−0.163, +0.042] | 0.252 | 0.477 (9) | 1.000 | no significant difference |
+| MSL | `zscore` | 0.435 | 0.249 | +0.186 [+0.040, +0.318] | 0.017 | 0.235 (13) | 0.939 | no significant difference |
+| MSL | `ewma` | 0.435 | 0.223 | +0.212 [+0.061, +0.368] | 0.002 | 0.155 (9) | 0.929 | no significant difference |
+| MSL | `cusum` | 0.435 | 0.514 | −0.080 [−0.224, +0.064] | 0.299 | 0.366 (12) | 1.000 | no significant difference |
+
+**Verdict: the pre-stated success criterion is not met.** OES32 is significantly better than EWMA on SMAP and significantly worse than nothing. The simplest windowed baseline, `maxabs`, has a higher pooled event F1 on both datasets, and CUSUM has the highest pooled F1 on MSL. Neither difference is significant.
+
+**Secondary targets and the sensitivity subset** (descriptive only; pooled event F1). The non-constant-train subset excludes the 9 SMAP and 5 MSL channels whose train telemetry is constant:
+
+| subset | target FP | dataset (channels) | oes32 | maxabs | zscore | ewma | cusum | significant verdicts |
+|---|---|---|---|---|---|---|---|---|
+| all | 0.01 | SMAP (54) | 0.379 | 0.475 | 0.061 | 0.087 | 0.169 | better than ewma |
+| all | 0.01 | MSL (27) | 0.435 | 0.500 | 0.249 | 0.223 | 0.514 | none |
+| all | 0.001 | SMAP (54) | 0.429 | 0.463 | 0.197 | 0.172 | 0.285 | none |
+| all | 0.001 | MSL (27) | 0.529 | 0.562 | 0.293 | 0.388 | 0.542 | none |
+| all | 0 | SMAP (54) | 0.448 | 0.467 | 0.441 | 0.197 | 0.290 | none |
+| all | 0 | MSL (27) | 0.541 | 0.562 | 0.404 | 0.490 | 0.525 | none |
+| non-constant train | 0.01 | SMAP (45) | 0.317 | 0.360 | 0.047 | 0.070 | 0.143 | better than ewma |
+| non-constant train | 0.01 | MSL (22) | 0.356 | 0.379 | 0.221 | 0.174 | 0.440 | none |
+| non-constant train | 0.001 | SMAP (45) | 0.350 | 0.343 | 0.142 | 0.135 | 0.243 | none |
+| non-constant train | 0.001 | MSL (22) | 0.438 | 0.440 | 0.259 | 0.313 | 0.463 | none |
+| non-constant train | 0 | SMAP (45) | 0.368 | 0.347 | 0.324 | 0.155 | 0.247 | none |
+| non-constant train | 0 | MSL (22) | 0.451 | 0.440 | 0.431 | 0.409 | 0.447 | none |
+
+What the real-data evaluation shows, with caveats:
+
+- **OES32's apparent gains over `zscore`, EWMA and CUSUM come mostly from fewer false-alarm runs, not more detections.**
+  - The pointwise and recursive scores break alarms into many short runs, and each run counts as a false alarm; the 32-sample window merges them. For example, on SMAP `zscore` detects exactly as many events as OES32 (46/68) but produces 1397 false-alarm runs against 129.
+  - `maxabs` uses the same window and does as well or better on pooled F1, so the benefit looks like a property of the window, not of the OES32 weighting.
+  - At the strictest target (0), the gap to `zscore` on SMAP nearly vanishes (0.448 vs 0.441).
+- **The two statistical views disagree.** The paired bootstrap of pooled F1 favours OES32 over `zscore`, EWMA and CUSUM by wide margins. The per-channel Wilcoxon test does not, because the false-alarm runs are concentrated in a few channels. Against `maxabs` the direction even flips: OES32 has a lower pooled F1 but a higher mean per-channel F1 (+0.10 on SMAP) and much higher recall (SMAP 0.68 vs 0.43; contextual anomalies 0.42 vs 0.00). The criterion required both views to agree, and they only did for EWMA on SMAP.
+- **Train-calibrated thresholds did not transfer to test.** The target was 1% of train samples. On unlabelled test samples the alarm rate was 10–15% on SMAP and 19–24% on MSL for the non-CUSUM methods, and 36–41% for CUSUM. Train-to-test drift is one cause. Others are the 14 channels whose train telemetry is constant (any change alarms) and possibly incomplete labels, since unlabelled does not mean normal. Absolute false-alarm numbers are therefore poor for every method.
+- **This is an adaptation of OES32.** OES32 was designed for a cross-sectional block of 32 channels. Here the 32 values are 32 consecutive samples of one channel. SMAP/MSL channels are separate files of different lengths with no shared clock, so real 32-channel blocks cannot be formed. The command columns are ignored by every method. These numbers are not comparable to published LSTM results, which use those columns and other scoring rules.
+- **Dataset quirks, stated before the run:**
+  - Values were scaled to (−1, 1) with the *test* min/max by the dataset authors, a leak shared by all methods.
+  - SMAP `P-2` has two label rows; they were merged.
+  - `T-10` has no labels and was not evaluated.
+- **Small samples.** 54 and 27 channels give wide CIs, and the MSL Wilcoxon tests rest on only 9–13 non-zero channel differences.
+- **Point-adjusted F1 ranks the methods differently** (on SMAP `zscore` is highest at 0.589). This is the inflation the protocol warned about, and it is why point-adjusted F1 is secondary here.
+- Latency is in samples. The dataset's timing is anonymised, so no wall-clock latency is claimed.
+
+Reproduce: `oes-resilience smap-msl fetch --data-dir DIR`, then `oes-resilience smap-msl evaluate --data-dir DIR --out-dir OUT --verify`. Each output file should match [`reports/smap_msl_results/SHA256SUMS`](reports/smap_msl_results/SHA256SUMS), except for the `version` field in the JSON, which records the running package version. CI tests the adapter and the analysis only on tiny synthetic fixtures; it never downloads the dataset.
 
 ## Install and run
 
@@ -226,6 +323,8 @@ oes-resilience stress --scenarios dropout,heavy_tail --t-df 5 --dropout-fraction
 oes-resilience replay --write-example-inputs /tmp/rp   # deterministic example replay + calibration replay
 oes-resilience replay --input /tmp/rp/synthetic_replay.jsonl --prereg examples/replay_prereg_calibrated.json \
     --calibration /tmp/rp/synthetic_calibration.jsonl --verify
+oes-resilience smap-msl fetch --data-dir ~/.cache/oes-resilience/smap_msl   # real NASA data: download + SHA-256 check
+oes-resilience smap-msl evaluate --data-dir ~/.cache/oes-resilience/smap_msl --out-dir outputs/smap_msl --verify
 oes-resilience --help
 ```
 
@@ -242,7 +341,7 @@ Without installing, run `python -m oes_resilience …` from the repository root 
 
 `compare` writes `<prefix>_scorecard.json`, `<prefix>_scorecard.csv` and `<prefix>_manifest.json`, which are deterministic. It also writes `<prefix>_scorecard.md`, `<prefix>_timing.json` and `<prefix>_run_metadata.json`, which include machine-dependent timings. Its options include `--detectors`, `--tracks`, `--target-fp`, `--streams`, `--fit-streams`, `--steps`, `--warmup`, `--plugins` (load entry-point detectors) and `--verify`. `stress` writes the same set of files (default prefix `oes_resilience_stress`). It also takes `--scenarios` and the perturbation parameters `--t-df`, `--burst-mean`, `--dropout-fraction`, `--saturated-fraction`, `--clip-level`, `--narrow-width`, `--drift-slope`, `--step-size`, `--correlated-blocks`, `--correlated-mean` and `--global-offset`. `replay` writes `<prefix>_report.json`, `<prefix>_scorecard.csv` and `<prefix>_manifest.json`, which are deterministic, plus `<prefix>_run_metadata.json` (default prefix `oes_resilience_replay`). Its options are `--input`, `--prereg`, `--calibration`, `--plugins`, `--verify` and `--write-example-inputs DIR`.
 
-**Exit codes:** `0` ok · `1` test failure or I/O error · `2` invalid arguments or configuration · `3` `run --strict` and an expectation check failed · `2` also covers invalid replay or preregistration files · `4` `compare --verify`, `stress --verify` or `replay --verify` found a hash mismatch.
+**Exit codes:** `0` ok · `1` test failure or I/O error · `2` invalid arguments or configuration · `3` `run --strict` and an expectation check failed · `2` also covers invalid replay or preregistration files · `4` `compare --verify`, `stress --verify`, `replay --verify` or `smap-msl evaluate --verify` found a hash mismatch. `smap-msl` exits with `2` when the data fails SHA-256 verification.
 
 **Library use:** `assess_signal(signal, Config())` scores and classifies any 512-value array. `run_benchmark`, `threshold_sweep`, `run_compare`, `run_stress` and `build_replay_report` (with `load_replay` and `load_preregistration`) return JSON-ready dictionaries. `create_detector("ewma").detect(stream)` returns a `DetectionResult`, and `register_detector` adds your own detector (see [docs/detector-api.md](docs/detector-api.md)).
 
@@ -250,26 +349,26 @@ Without installing, run `python -m oes_resilience …` from the repository root 
 
 ```bash
 python -m pip install -e ".[test]"
-python -m pytest --cov            # 189 tests (+88 subtests; 1 skipped without scikit-learn); coverage gate 90%
+python -m pytest --cov            # 215 tests (+103 subtests; 1 skipped without scikit-learn, 1 without SciPy); coverage gate 90%
 python -m oes_resilience test     # stdlib unittest runner, no pytest needed (source checkout; else pass --tests-dir)
 ```
 
-CI runs `ruff check`, pytest with the coverage gate, a byte-for-byte check of the example CSVs (including the compare, stress and replay scorecards), and a pip-install smoke test on Python 3.10–3.13. A separate job installs scikit-learn and tests the optional Isolation Forest. The tests cover the scoring formula worked by hand, block mapping for arbitrary block sizes, seed stability, validation errors, metric edge cases, the sweep matching separate runs, reproducible exports, the CLI exit codes, and replay input hardening and preregistration locking. [REVIEW.md](REVIEW.md) is the review of the original prototype (kept in [`original/`](original/)) that this release is based on.
+CI runs `ruff check`, pytest with the coverage gate, a byte-for-byte check of the example CSVs (including the compare, stress and replay scorecards), and a pip-install smoke test on Python 3.10–3.13. A separate job installs scikit-learn and tests the optional Isolation Forest. The tests cover the scoring formula worked by hand, block mapping for arbitrary block sizes, seed stability, validation errors, metric edge cases, the sweep matching separate runs, reproducible exports, the CLI exit codes, and replay input hardening and preregistration locking. The SMAP/MSL tests run on tiny synthetic fixtures. They check the adapter against the built-in EWMA/CUSUM and the OES32 formula, fetching and SHA-256 verification (including a zip-slip member), the hand-worked event metrics, the Wilcoxon test against SciPy (in the job that has SciPy), and blindness: moving every test label leaves every threshold unchanged. [REVIEW.md](REVIEW.md) is the review of the original prototype (kept in [`original/`](original/)) that this release is based on.
 
 ## Roadmap
 
 - **v0.2.0 (released):** detector plugin API; robust z-score, EWMA and CUSUM baselines (optional Isolation Forest); multi-step stream track; calibrated comparative scorecard.
 - **v0.3.0 (released):** stress suite with seeded ground truth, mask-aware missing-data scoring, the `oes32+ewma` hybrid, and robustness metrics (recall retention and FP inflation with Wilson intervals).
 - **v0.4.0 (released):** replay evaluation against a hashed preregistration, with calibrated thresholds by default, the plugin detectors, and the `maxabs` baseline.
-- **v0.5 (planned):** adapters for the public NASA SMAP/MSL telemetry anomaly datasets. The data will be downloaded from its public source, not bundled.
-
-v0.5 is not implemented yet, and no results are claimed for it.
+- **v0.5.0 (this version):** a NASA SMAP/MSL adapter (download with SHA-256 verification; the data is not bundled) and a blind, preregistered evaluation on that real public telemetry. Result: OES32 did not meet its pre-stated success criterion.
+- **Next (not started):** possible directions are other public datasets with real multichannel blocks, and calibration that holds up under train-to-test drift. Nothing is claimed for them.
 
 ## Limitations
 
 - **The synthetic regimes are much simpler than real telemetry.** They use Gaussian or Student-t noise, independent channels (apart from the designed correlated scenario), fixed 32-channel blocks and one event per stream. There is no seasonality, no cross-sensor physics and no labelling noise.
 - **Calibrated thresholds may not transfer.** They are fitted to the synthetic clean regimes; the heavy-tail rows above show how badly a threshold can transfer when the noise distribution changes. Any real use needs recalibration on representative data.
 - **Block scores discard information.** OES32 and the z-score use magnitudes (|x|, RMS), so they lose sign. They also score each frame on its own, so they lose temporal context. The temporal detectors use block means, which lose within-block structure, so narrow or partial-block events are diluted.
+- **One real dataset is not generalisation.** The SMAP/MSL evaluation is univariate per channel, uses a dataset with known quirks (test-set scaling, possibly incomplete labels), and found that train-calibrated thresholds do not transfer. It is evidence about that dataset and protocol only.
 - **Benchmark results do not guarantee reliability in production.** Good numbers here mean good behaviour on these generators only.
 - **Real deployment needs domain validation and human oversight.** Validate on real, representative data with domain experts, and keep a human in the loop for decisions based on alarms.
 
@@ -280,7 +379,7 @@ v0.5 is not implemented yet, and no results are claimed for it.
 
 ## Citation
 
-See [CITATION.cff](CITATION.cff). Releases are archived on Zenodo under the concept DOI [10.5281/zenodo.23071166](https://doi.org/10.5281/zenodo.23071166), which covers all versions. Each release also gets its own version DOI on Zenodo.
+See [CITATION.cff](CITATION.cff). If you use the SMAP/MSL evaluation, also cite the dataset: K. Hundman, V. Constantinou, C. Laporte, I. Colwell and T. Soderstrom, "Detecting Spacecraft Anomalies Using LSTMs and Nonparametric Dynamic Thresholding", *Proc. 24th ACM SIGKDD*, 2018, pp. 387–395, [doi:10.1145/3219819.3219845](https://doi.org/10.1145/3219819.3219845). Releases are archived on Zenodo under the concept DOI [10.5281/zenodo.23071166](https://doi.org/10.5281/zenodo.23071166), which covers all versions. Each release also gets its own version DOI on Zenodo.
 
 ## License
 

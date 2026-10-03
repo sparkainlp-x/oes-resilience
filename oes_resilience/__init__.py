@@ -1,8 +1,9 @@
 # Copyright (C) 2026 Jean-François Brisson / Spark AI NLP. SPDX-License-Identifier: AGPL-3.0-only
 """OES-Resilience: an open, reproducible benchmark for multichannel telemetry anomaly detection.
 
-Synthetic data only: not a physical sensor, quantum processor, navigation (GPS) system
-or medical device, and no claims about any of those.
+Synthetic benchmark: not a physical sensor, quantum processor, navigation (GPS) system
+or medical device, and no claims about any of those. The only real data is the optional,
+preregistered NASA SMAP/MSL evaluation (v0.5), downloaded by the user and never bundled.
 
 Modules: :mod:`.core` (v0.1 single-frame benchmark, OES32 scoring, CLI),
 :mod:`.detectors` (plugin API and detectors), :mod:`.streams` (multi-step streams),
