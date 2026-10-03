@@ -10,6 +10,13 @@ authors:
 version: 0.5.0
 date-released: "2026-10-03"
 doi: 10.5281/zenodo.23071166
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.23071166
+    description: "Concept DOI (all versions)"
+  - type: doi
+    value: 10.5281/zenodo.23128059
+    description: "Version DOI for v0.5.0"
 license: AGPL-3.0-only
 repository-code: "https://github.com/sparkainlp-x/oes-resilience"
 url: "https://sparkainlpx.xyz"
