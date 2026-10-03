@@ -5,13 +5,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "oes-resilience"
 dynamic = ["version"]
-description = "OES-Resilience: open, reproducible benchmark for multichannel telemetry anomaly detection with the transparent OES32 reference detector, a detector plugin API, a calibrated scorecard and preregistered replay evaluation; NumPy only; synthetic data, no physical claims"
+description = "OES-Resilience: open, reproducible benchmark for multichannel telemetry anomaly detection with the transparent OES32 reference detector, a detector plugin API, a calibrated scorecard, preregistered replay evaluation and a preregistered evaluation on public NASA SMAP/MSL telemetry (data downloaded, not bundled); NumPy only; synthetic benchmark, no physical claims"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "AGPL-3.0-only"
 license-files = ["LICENSE"]
 authors = [{ name = "Jean-François Brisson" }]
-keywords = ["anomaly-detection", "benchmark", "synthetic-data", "telemetry", "numpy", "reproducibility"]
+keywords = ["anomaly-detection", "benchmark", "synthetic-data", "telemetry", "numpy", "reproducibility", "nasa-smap-msl", "preregistration"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3",

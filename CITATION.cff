@@ -7,8 +7,8 @@ authors:
     given-names: "Jean-François"
     orcid: "https://orcid.org/0009-0000-9778-5374"
     affiliation: "Spark AI NLP"
-version: 0.4.0
-date-released: "2026-09-30"
+version: 0.5.0
+date-released: "2026-10-03"
 doi: 10.5281/zenodo.23071166
 license: AGPL-3.0-only
 repository-code: "https://github.com/sparkainlp-x/oes-resilience"
@@ -20,7 +20,13 @@ abstract: >-
   reference detector (0.45 max|x| + 0.35 RMS + 0.20 mean|x|), a robust
   z-score baseline, EWMA and CUSUM temporal detectors, an oes32+ewma hybrid
   and an optional Isolation Forest, compared in a calibrated scorecard.
-  Version 0.4.0 adds replay evaluation: a JSONL telemetry replay is scored
+  Version 0.5.0 adds a NASA SMAP/MSL adapter (public data downloaded with
+  per-file SHA-256 verification, never bundled) and a blind evaluation on
+  that real telemetry under a protocol locked before any test-split scoring.
+  OES32 did not meet its pre-stated success criterion: it beat only EWMA on
+  SMAP, and the simpler max|x| and CUSUM baselines reached a higher pooled
+  event F1 (not significantly).
+  Version 0.4.0 added replay evaluation: a JSONL telemetry replay is scored
   against a hashed preregistration, with every detector's threshold calibrated
   by default to the same ~1% false-positive budget on a hash-locked,
   event-free calibration replay (fixed thresholds carry a fairness note).
@@ -28,9 +34,10 @@ abstract: >-
   channels, saturation and clipping, narrow and cross-block events, global
   shift, correlated blocks, drift and baseline steps) with robustness metrics
   (FP inflation, recall retention, Wilson intervals), explicit mask-aware
-  handling of missing data, and honest negative results. Synthetic data only;
-  not quantum, not GPS, not a physical sensor, and no performance claims about
-  real systems.
+  handling of missing data, and honest negative results. The benchmark is
+  synthetic; the only real data is the SMAP/MSL evaluation, which describes
+  that dataset and protocol only. Not quantum, not GPS, not a physical sensor,
+  and no performance claims about operational systems.
 keywords:
   - anomaly-detection
   - benchmark
@@ -42,6 +49,8 @@ keywords:
   - operational-resilience
   - signal-processing
   - scientific-software
+  - nasa-smap-msl
+  - preregistration
 references:
   - type: software
     title: "OES-32 Residual Reference"
@@ -51,3 +60,22 @@ references:
         orcid: "https://orcid.org/0009-0000-9778-5374"
     doi: "10.5281/zenodo.22985521"
     repository-code: "https://github.com/sparkainlp-x/oes32-residual"
+  - type: conference-paper
+    title: "Detecting Spacecraft Anomalies Using LSTMs and Nonparametric Dynamic Thresholding"
+    authors:
+      - family-names: "Hundman"
+        given-names: "Kyle"
+      - family-names: "Constantinou"
+        given-names: "Valentino"
+      - family-names: "Laporte"
+        given-names: "Christopher"
+      - family-names: "Colwell"
+        given-names: "Ian"
+      - family-names: "Soderstrom"
+        given-names: "Tom"
+    collection-title: "Proceedings of the 24th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining"
+    year: 2018
+    start: 387
+    end: 395
+    doi: "10.1145/3219819.3219845"
+    notes: "Source of the NASA SMAP/MSL telemetry anomaly dataset used by the v0.5 evaluation (data not redistributed)."

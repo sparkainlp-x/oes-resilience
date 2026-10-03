@@ -6,6 +6,31 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-03
+
+First evaluation on **real public telemetry**. Everything else in the project remains synthetic, and the existing synthetic caveats are unchanged.
+
+### Added
+- **Preregistered protocol for a blind evaluation on real public telemetry** (NASA SMAP/MSL, Hundman et al. 2018): `reports/smap_msl_protocol.json` and `reports/smap_msl_protocol.md`, locked before any method was scored on the test split. It fixes the train-only calibration rule and targets, the five methods and their parameters, the event-level metrics, the bootstrap/Wilcoxon/Holm analysis, the seed and the success criteria.
+- `oes_resilience.smap_msl` and CLI `oes-resilience smap-msl {fetch,verify,train-diagnostics,evaluate}`: download into a cache outside the repository with per-file SHA-256 verification against `reports/smap_msl_data.sha256` (raw data is never bundled), univariate adapter, train-only calibration and the preregistered analysis. `scripts/fetch_smap_msl.py` wraps the fetch step.
+- `tests/test_smap_msl.py` on tiny synthetic fixtures (CI never downloads the dataset), including a blindness test: moving every test label leaves every threshold unchanged.
+- **Results of the blind evaluation** in `reports/smap_msl_results/`: results JSON, summary, comparison and per-channel CSVs, an SVG plot and `SHA256SUMS`, from one `--verify` run of the lock-commit code. The README has a new section labelled REAL DATA.
+  - **The pre-stated success criterion is not met.** At the primary train-calibrated 1% target, OES32's pooled event F1 is 0.379 on SMAP and 0.435 on MSL.
+  - It is significantly better only than EWMA on SMAP (ΔF1 +0.29, paired 95% CI [+0.19, +0.43], Holm p 0.021) and significantly worse than no baseline.
+  - `maxabs` has a higher pooled F1 on both datasets (0.475 and 0.500) and CUSUM has the highest on MSL (0.514); none of these differences is significant.
+  - OES32's pooled advantage over `zscore`, EWMA and CUSUM comes mostly from fewer, merged false-alarm runs, an effect of its 32-sample window that `maxabs` shares. Per-channel Wilcoxon tests do not confirm it.
+  - Train-calibrated thresholds did not transfer to test: the alarm rate on unlabelled test samples was 10–41% against the 1% train target.
+- References: the dataset paper (Hundman et al. 2018, doi:10.1145/3219819.3219845) is added to `CITATION.cff` and `.zenodo.json`, together with the keywords `nasa-smap-msl` and `preregistration`.
+
+### Changed
+- README: the intro, "What it is not", the replay caveat, the roadmap, the limitations, the tests and the citation now reflect the v0.5 real-data evaluation. The synthetic caveats are kept.
+- `.gitignore` ignores `*.npy` and the download archive, so raw data cannot be committed by accident.
+- The version is now 0.5.0 in `_version.py`, `CITATION.cff` and `.zenodo.json`, and the version test expects 0.5.0.
+
+### Disclosures
+- **No change after the lock.** Neither the protocol (`reports/smap_msl_protocol.json`, SHA-256 `927cf78f…8ea3`, locked in commit `fdf9905`), the evaluation code nor the data changed after the lock. The results were produced by the lock-commit code, whose package version string was still 0.4.0; the `version` field in the results JSON records that.
+- **Data source.** The original telemanom S3 bucket returned HTTP 403, so the data was fetched from the Kaggle mirror that the telemanom README links to. Every extracted file matches the committed SHA-256 manifest, and the label CSV is byte-identical to the one in the telemanom repository.
+
 ## [0.4.0] - 2026-09-30
 
 ### Added
