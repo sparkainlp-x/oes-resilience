@@ -270,6 +270,8 @@ With the fixed 0.50/0.50 preregistration, the pilot's numbers are reproduced exa
 
 **Verdict: the pre-stated success criterion is not met.** OES32 is significantly better than EWMA on SMAP and significantly worse than nothing. The simplest windowed baseline, `maxabs`, has a higher pooled event F1 on both datasets, and CUSUM has the highest pooled F1 on MSL. Neither difference is significant.
 
+**Evidence Passport (read-only summary).** A static HTML evidence passport for this same SMAP/MSL run — preserving the criterion-not-met label, the declared protocol digests, and the bundled artifact hashes — lives at [`docs/evidence-passport-smap-msl-v0.5.html`](docs/evidence-passport-smap-msl-v0.5.html). It was produced by the offline [evidence-passport](https://github.com/sparkainlp-x/evidence-passport) MVP from a hand-mapped manifest; it does **not** re-run the evaluation or change the verdict above. Sample: [GitHub Pages mirror](https://sparkainlp-x.github.io/evidence-passport/oes-resilience-smap-msl-v0.5.html).
+
 **Secondary targets and the sensitivity subset** (descriptive only; pooled event F1). The non-constant-train subset excludes the 9 SMAP and 5 MSL channels whose train telemetry is constant:
 
 | subset | target FP | dataset (channels) | oes32 | maxabs | zscore | ewma | cusum | significant verdicts |
