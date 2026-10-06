@@ -45,5 +45,10 @@
       "relation": "isSupplementTo",
       "scheme": "url"
     }
+  ],
+  "communities": [
+    {
+      "identifier": "spark-ai-nlp"
+    }
   ]
 }
