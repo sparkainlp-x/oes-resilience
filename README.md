@@ -382,7 +382,7 @@ CI runs `ruff check`, pytest with the coverage gate, a byte-for-byte check of th
 
 ## Citation
 
-See [CITATION.cff](CITATION.cff). If you use the SMAP/MSL evaluation, also cite the dataset: K. Hundman, V. Constantinou, C. Laporte, I. Colwell and T. Soderstrom, "Detecting Spacecraft Anomalies Using LSTMs and Nonparametric Dynamic Thresholding", *Proc. 24th ACM SIGKDD*, 2018, pp. 387–395, [doi:10.1145/3219819.3219845](https://doi.org/10.1145/3219819.3219845). Releases are archived on Zenodo under the concept DOI [10.5281/zenodo.23071166](https://doi.org/10.5281/zenodo.23071166), which covers all versions. Each release also gets its own version DOI on Zenodo; v0.5.0 is [10.5281/zenodo.23128059](https://doi.org/10.5281/zenodo.23128059).
+See [CITATION.cff](CITATION.cff). If you use the SMAP/MSL evaluation, also cite the dataset: K. Hundman, V. Constantinou, C. Laporte, I. Colwell and T. Soderstrom, "Detecting Spacecraft Anomalies Using LSTMs and Nonparametric Dynamic Thresholding", *Proc. 24th ACM SIGKDD*, 2018, pp. 387–395, [doi:10.1145/3219819.3219845](https://doi.org/10.1145/3219819.3219845). Releases are archived on Zenodo under the concept DOI [10.5281/zenodo.23071166](https://doi.org/10.5281/zenodo.23071166), which covers all versions. Each release also gets its own version DOI on Zenodo; v0.5.1 (metadata update) is [10.5281/zenodo.23241685](https://doi.org/10.5281/zenodo.23241685) and v0.5.0 is [10.5281/zenodo.23128059](https://doi.org/10.5281/zenodo.23128059).
 
 ## License
 

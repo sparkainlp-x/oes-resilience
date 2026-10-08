@@ -15,8 +15,8 @@ identifiers:
     value: 10.5281/zenodo.23071166
     description: "Concept DOI (all versions)"
   - type: doi
-    value: 10.5281/zenodo.23128059
-    description: "Version DOI for v0.5.0"
+    value: 10.5281/zenodo.23241685
+    description: "Version DOI for v0.5.1"
 license: AGPL-3.0-only
 repository-code: "https://github.com/sparkainlp-x/oes-resilience"
 url: "https://sparkainlpx.xyz"
