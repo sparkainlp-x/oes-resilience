@@ -20,7 +20,7 @@ Version 0.5.0 adds the first evaluation on **real public telemetry**: a [blind, 
 
 ## What it is not
 
-- **Not quantum.** No qubits, quantum hardware or quantum error correction are involved.
+- **Not quantum.** No qubits, quantum hardware or quantum error correction are involved. The separate, unreleased [qbench concept module](#quantum-benchmark-evidence-layer-concept-unreleased) only orchestrates *classical simulators* of small circuits and adds statistics and hashing; it has no hardware results.
 - **Not GPS or navigation.** It does not estimate position, timing or trajectories.
 - **Not a physical sensor or device.** It reads no hardware, and all signals are generated synthetically by NumPy.
 - **Not a medical, safety or certified system,** and not an operational monitoring product.
@@ -308,6 +308,34 @@ What the real-data evaluation shows, with caveats:
 
 Reproduce: `oes-resilience smap-msl fetch --data-dir DIR`, then `oes-resilience smap-msl evaluate --data-dir DIR --out-dir OUT --verify`. Each output file should match [`reports/smap_msl_results/SHA256SUMS`](reports/smap_msl_results/SHA256SUMS), except for the `version` field in the JSON, which records the running package version. CI tests the adapter and the analysis only on tiny synthetic fixtures; it never downloads the dataset.
 
+## Quantum benchmark evidence layer (concept, unreleased)
+
+> **SIMULATOR ONLY. Concept code, not released.** Classical software that runs Qiskit Aer simulators on a laptop. No quantum hardware has been used, and there are **no hardware results**. Nothing here is a quantum error correction, threshold, quantum-advantage or hardware-performance claim.
+
+**What it is.** `oes_resilience.qbench` is a small evidence and statistics layer around benchmark runs. It applies the same discipline as the SMAP/MSL evaluation: preregister, run, compare paired conditions honestly, and hash everything. It is meant to **complement** open, vendor-neutral benchmark efforts such as [Metriq](https://github.com/unitaryfoundation/metriq) (Unitary Foundation) and the [QED-C application-oriented benchmarks](https://github.com/SRI-International/QC-App-Oriented-Benchmarks), not to compete with them. Those projects own the benchmark definitions and the cross-vendor data; this module only shows how a preregistered paired analysis and an evidence passport could sit on top.
+
+- **Circuits.** Three small textbook families are implemented locally in `qbench_sim.py`: GHZ, Bernstein-Vazirani with a seeded hidden string, and a QFT-style circuit (seeded phase encoding followed by an explicit inverse QFT). They are *not* imported from MQT Bench, QED-C or Metriq, and they are not a recognized suite. MQT Bench was not used because it requires Python ≥ 3.11 plus scikit-learn and networkx; importing recognized workloads is the obvious next step.
+- **Conditions** (default plan): `ideal` (noiseless Aer), `noisy_o1` and `noisy_o3` (Aer with a **synthetic** noise model, transpiled at optimization level 1 or 3). The noise model is hand-chosen and calibrated to no device: depolarizing p1 = 0.001 after `sx`/`x`, p2 = 0.01 after `cx`, symmetric readout flip 0.02. All conditions target one hypothetical device (basis `rz, sx, x, cx`, linear coupling). Each instance uses the same `seed_transpiler` and `seed_simulator` in every condition, so the differences are paired.
+- **Per-run records:** backend name, software versions, seeds, shots, SHA-256 of the logical and transpiled circuits (OpenQASM 2), transpile settings, counts, the exact ideal distribution, Hellinger fidelity, total variation distance, success probability and the plan hash. Wall-clock timestamps go in `<prefix>_runs.jsonl` and `<prefix>_run_metadata.json`, so `<prefix>_results.json` stays deterministic and `--verify` can compare its hash across two runs.
+- **Paired statistics.** For each preregistered comparison and metric, the mean oriented paired difference (positive favours condition b) gets a percentile **block-bootstrap** interval. Whole blocks are resampled; by default a block is circuit family × seed batch, and the sensitivity schemes use family only and batch only. Fewer than 5 blocks is flagged as unreliable. The **metric-swap check** reports whether the verdict changes between Hellinger fidelity, TVD and success probability. For a single-outcome ideal distribution (BV, QFT) the three metrics carry the same information (F = p, TVD = 1 − p); only GHZ separates them, so a flip is unlikely in the default plan by construction.
+- **Preregistration helper.** `qbench prereg` writes the analysis plan plus a `.sha256` sidecar **before** any run, and refuses to overwrite an existing plan. `qbench run` re-checks the hash, records it before the first circuit runs, and copies the plan next to the outputs. **This lock is self-attested.** For a credible lock, deposit the plan file with an external timestamp (Zenodo or OSF) *before* running.
+- **Evidence passport.** `<prefix>_passport.json` follows the [evidence-passport](https://github.com/sparkainlp-x/evidence-passport) run-manifest v1 schema (`evidence_class: synthetic`, `result_label: synthetic_example`) and lists the SHA-256 of the plan, results, run records, run metadata and report. `qbench validate-passport` re-hashes them. **Hashes are not signatures.** They show byte consistency only, and they do not prove who produced a file, when, its provenance, or that the method is valid.
+- **Optional IBM hardware adapter** (`qbench_ibm.py`, extra `ibm`). It is off by default. It runs only if you set `OES_QBENCH_IBM_TOKEN` *and* add a condition with `"target": "ibm"` and a `"backend"` to your plan. Otherwise `qbench run` refuses with exit code 2. It has **never been run** on hardware by the author or CI, does not yet record calibration snapshots, and never writes the token to any output.
+
+**What it is not.** Not QEC, not a threshold estimate, not evidence of quantum advantage, not a hardware benchmark, and not a substitute for Metriq, QED-C, QUOPS or independent verification programmes. Simulator counts depend on the Qiskit and Qiskit Aer versions, so byte-identical reruns are expected only with the same versions.
+
+**How to run** (the optional extra keeps the core NumPy-only):
+
+```bash
+python -m pip install ".[quantum]"                     # qiskit + qiskit-aer
+oes-resilience qbench prereg --out my_plan.json        # writes the plan + my_plan.json.sha256 BEFORE any run
+# (deposit my_plan.json on Zenodo/OSF here for an external timestamp)
+oes-resilience qbench run --prereg my_plan.json --out-dir outputs/qbench --verify
+oes-resilience qbench validate-passport outputs/qbench/qbench_passport.json
+```
+
+`qbench run` writes `<prefix>_plan.json` (a copy of the plan), `<prefix>_results.json` (deterministic), `<prefix>_runs.jsonl`, `<prefix>_run_metadata.json`, `<prefix>_report.md` and `<prefix>_passport.json`. A sample run of the committed plan [`examples/qbench_plan.json`](examples/qbench_plan.json) is in [`examples/qbench_sample/`](examples/qbench_sample/); see its [report](examples/qbench_sample/qbench_report.md) (**SIMULATOR ONLY**).
+
 ## Install and run
 
 Requires Python 3.10 or newer and NumPy.
@@ -352,11 +380,11 @@ Without installing, run `python -m oes_resilience …` from the repository root 
 
 ```bash
 python -m pip install -e ".[test]"
-python -m pytest --cov            # 215 tests (+103 subtests; 1 skipped without scikit-learn, 1 without SciPy); coverage gate 90%
+python -m pytest --cov            # 251 tests (+137 subtests; 1 skipped without scikit-learn, 1 without SciPy, 4 without the optional `quantum` extra and 1 only runs without it); coverage gate 90%
 python -m oes_resilience test     # stdlib unittest runner, no pytest needed (source checkout; else pass --tests-dir)
 ```
 
-CI runs `ruff check`, pytest with the coverage gate, a byte-for-byte check of the example CSVs (including the compare, stress and replay scorecards), and a pip-install smoke test on Python 3.10–3.13. A separate job installs scikit-learn and tests the optional Isolation Forest. The tests cover the scoring formula worked by hand, block mapping for arbitrary block sizes, seed stability, validation errors, metric edge cases, the sweep matching separate runs, reproducible exports, the CLI exit codes, and replay input hardening and preregistration locking. The SMAP/MSL tests run on tiny synthetic fixtures. They check the adapter against the built-in EWMA/CUSUM and the OES32 formula, fetching and SHA-256 verification (including a zip-slip member), the hand-worked event metrics, the Wilcoxon test against SciPy (in the job that has SciPy), and blindness: moving every test label leaves every threshold unchanged. [REVIEW.md](REVIEW.md) is the review of the original prototype (kept in [`original/`](original/)) that this release is based on.
+CI runs `ruff check`, pytest with the coverage gate, a byte-for-byte check of the example CSVs (including the compare, stress and replay scorecards), and a pip-install smoke test on Python 3.10–3.13. A separate job installs scikit-learn and tests the optional Isolation Forest. Another job installs the optional `quantum` extra (Qiskit, Qiskit Aer), runs the qbench simulator smoke tests, then runs `qbench prereg`, `qbench run --verify` and `qbench validate-passport` on a tiny plan. No IBM token exists in CI. The tests cover the scoring formula worked by hand, block mapping for arbitrary block sizes, seed stability, validation errors, metric edge cases, the sweep matching separate runs, reproducible exports, the CLI exit codes, and replay input hardening and preregistration locking. The SMAP/MSL tests run on tiny synthetic fixtures. They check the adapter against the built-in EWMA/CUSUM and the OES32 formula, fetching and SHA-256 verification (including a zip-slip member), the hand-worked event metrics, the Wilcoxon test against SciPy (in the job that has SciPy), and blindness: moving every test label leaves every threshold unchanged. [REVIEW.md](REVIEW.md) is the review of the original prototype (kept in [`original/`](original/)) that this release is based on.
 
 ## Roadmap
 
@@ -364,6 +392,7 @@ CI runs `ruff check`, pytest with the coverage gate, a byte-for-byte check of th
 - **v0.3.0 (released):** stress suite with seeded ground truth, mask-aware missing-data scoring, the `oes32+ewma` hybrid, and robustness metrics (recall retention and FP inflation with Wilson intervals).
 - **v0.4.0 (released):** replay evaluation against a hashed preregistration, with calibrated thresholds by default, the plugin detectors, and the `maxabs` baseline.
 - **v0.5.0 (this version):** a NASA SMAP/MSL adapter (download with SHA-256 verification; the data is not bundled) and a blind, preregistered evaluation on that real public telemetry. Result: OES32 did not meet its pre-stated success criterion.
+- **Unreleased (concept):** `qbench`, a classical evidence and statistics layer around local simulator runs of small benchmark circuits (preregistration helper, paired block bootstrap, metric-swap check, evidence passport). Simulator only; no hardware results.
 - **Next (not started):** possible directions are other public datasets with real multichannel blocks, and calibration that holds up under train-to-test drift. Nothing is claimed for them.
 
 ## Limitations

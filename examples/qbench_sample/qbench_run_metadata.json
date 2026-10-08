@@ -1,0 +1,29 @@
+{
+  "argv": [
+    "qbench",
+    "run",
+    "--prereg",
+    "examples/qbench_plan.json",
+    "--expect-plan-sha256",
+    "e0b5bffaa7c0e649ba7b7b08f4b800a94ec6134d0d78ab3c95b23315c2656c07",
+    "--out-dir",
+    "examples/qbench_sample",
+    "--verify"
+  ],
+  "created_utc": "2026-10-08T01:44:56.454589+00:00",
+  "numpy": "2.5.3",
+  "plan_hash_recorded_utc": "2026-10-08T01:44:52.636470+00:00",
+  "plan_mtime_utc": "2026-10-08T01:44:44.872468+00:00",
+  "platform": "Linux-6.12.94+-x86_64-with-glibc2.41",
+  "project": "OES-Resilience qbench",
+  "python": "3.13.5 (main, Aug 10 2026, 12:06:59) [GCC 14.2.0]",
+  "software": {
+    "numpy": "2.5.3",
+    "oes-resilience": "0.5.0",
+    "python": "3.13.5",
+    "qiskit": "2.5.2",
+    "qiskit-aer": "0.17.2"
+  },
+  "verify_reproducible": true,
+  "version": "0.5.0"
+}

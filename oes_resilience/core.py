@@ -985,7 +985,7 @@ def build_parser() -> argparse.ArgumentParser:
         description=f"{PROJECT} v{__version__}: reproducible synthetic benchmark for multichannel "
         "telemetry anomaly detection (OES32 reference detector).",
         epilog="Exit codes: 0 ok, 1 test failure/runtime error, 2 invalid arguments, "
-        "3 --strict and an expectation check failed, 4 compare/stress/replay/smap-msl --verify hash mismatch.",
+        "3 --strict and an expectation check failed, 4 compare/stress/replay/smap-msl/qbench --verify hash mismatch.",
     )
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument("--test", action="store_true", help="alias for the 'test' subcommand")
@@ -1019,6 +1019,10 @@ def build_parser() -> argparse.ArgumentParser:
     from .smap_msl import add_smap_parser  # lazy, as above
 
     add_smap_parser(sub)
+
+    from .qbench import add_qbench_parser  # lazy, as above (Qiskit itself is imported only when running)
+
+    add_qbench_parser(sub)
 
     test = sub.add_parser("test", help="run the unit-test suite (unittest discovery)")
     test.add_argument(
@@ -1098,7 +1102,7 @@ def _cmd_sweep(args: argparse.Namespace, argv: Sequence[str]) -> int:
     return EXIT_OK
 
 
-COMMANDS = frozenset({"run", "sweep", "compare", "stress", "replay", "smap-msl", "test"})
+COMMANDS = frozenset({"run", "sweep", "compare", "stress", "replay", "smap-msl", "qbench", "test"})
 TOP_LEVEL_FLAGS = frozenset({"-h", "--help", "--version", "--test"})
 
 
@@ -1135,6 +1139,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             from .smap_msl import cmd_smap
 
             return cmd_smap(args, argv)
+        if args.command == "qbench":
+            from .qbench import cmd_qbench
+
+            return cmd_qbench(args, argv)
         return _cmd_sweep(args, argv)
     except (TypeError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)

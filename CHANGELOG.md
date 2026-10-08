@@ -6,6 +6,19 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- **`oes_resilience.qbench` (concept, SIMULATOR ONLY):** a classical evidence and statistics layer around small benchmark circuits (GHZ, Bernstein-Vazirani, QFT-style) run on local Qiskit Aer simulators, noiseless and with a documented synthetic noise model. It includes:
+  - a preregistration helper (`qbench prereg`) that writes the plan and its SHA-256 before any run;
+  - per-run records (backend, versions, seeds, shots, circuit hashes, transpile settings, metrics, timestamps);
+  - paired differences with block-bootstrap intervals and a metric-swap check (Hellinger fidelity, TVD, success probability);
+  - an evidence passport in the evidence-passport v1 schema, plus a Markdown report.
+
+  Hashes are not signatures, and the self-recorded plan lock needs an external timestamp to be credible. No hardware results, and no QEC, threshold or advantage claim.
+- `oes_resilience.qbench_sim` (Qiskit/Aer executor) and `oes_resilience.qbench_ibm` (opt-in IBM adapter, gated by `OES_QBENCH_IBM_TOKEN`, never run in CI, untested on hardware).
+- Optional extras `quantum` (qiskit, qiskit-aer) and `ibm` (qiskit-ibm-runtime); the core stays NumPy-only.
+- `tests/test_qbench.py`, and a CI job `optional-quantum` that runs the simulator smoke tests and `qbench prereg` / `run --verify` / `validate-passport`.
+- `examples/qbench_plan.json` (with `.sha256`) and a simulator-only sample run in `examples/qbench_sample/`.
+
 ## [0.5.0] - 2026-10-03
 
 First evaluation on **real public telemetry**. Everything else in the project remains synthetic, and the existing synthetic caveats are unchanged.
