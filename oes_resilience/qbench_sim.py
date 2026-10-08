@@ -12,6 +12,8 @@ All conditions are transpiled for one hypothetical target (basis gates and a lin
 with the instance's ``seed_transpiler``, and simulated with the instance's ``seed_simulator``. The noise model is
 synthetic: depolarizing errors after ``sx``/``x`` (p1) and ``cx`` (p2) plus a symmetric readout flip. It is not
 calibrated to any device. Classical simulation only.
+
+Author: Jean-François Brisson (ORCID 0009-0000-9778-5374), Spark AI NLP.
 """
 
 from __future__ import annotations
@@ -26,17 +28,34 @@ from ._version import __version__
 INSTALL_HINT = "qbench simulators need the optional extra: pip install 'oes-resilience[quantum]'"
 
 
-def _require() -> Any:
+def _require() -> None:
+    """Raise a helpful ImportError unless qiskit and qiskit-aer are installed."""
     try:
-        import qiskit
-        import qiskit_aer
+        import qiskit  # noqa: F401
+        import qiskit_aer  # noqa: F401
     except ImportError as exc:
         raise ImportError(INSTALL_HINT) from exc
-    return qiskit, qiskit_aer
 
 
 def build_circuit(family: str, width: int, params: Mapping[str, int]) -> Any:
-    """Logical circuit for one benchmark instance (measures ``width`` classical bits)."""
+    """Build the logical circuit of one benchmark instance.
+
+    Parameters
+    ----------
+    family : {"ghz", "bv", "qft"}
+        Circuit family.
+    width : int
+        Number of measured (data) qubits; ``bv`` adds one ancilla.
+    params : mapping
+        Instance parameters from :func:`oes_resilience.qbench.instance_params` (``secret`` for ``bv``,
+        ``value`` for ``qft``).
+
+    Returns
+    -------
+    qiskit.QuantumCircuit
+        Measures ``width`` classical bits; the noiseless output follows
+        :func:`oes_resilience.qbench.ideal_distribution`.
+    """
     from qiskit import QuantumCircuit
 
     if family == "ghz":
@@ -78,6 +97,7 @@ def build_circuit(family: str, width: int, params: Mapping[str, int]) -> Any:
 
 
 def build_noise_model(cfg: Mapping[str, float]) -> Any:
+    """Build the synthetic Aer noise model ``{p1, p2, readout}`` described in the plan."""
     from qiskit_aer.noise import NoiseModel, ReadoutError, depolarizing_error
 
     model = NoiseModel()
@@ -98,14 +118,43 @@ def _version(dist: str) -> str:
         return "not installed"
 
 
-class AerExecutor:
-    """Default :mod:`.qbench` executor: Qiskit Aer, noiseless or with the plan's synthetic noise model."""
+class QiskitExecutor:
+    """Default :class:`oes_resilience.qbench.Executor`.
+
+    Conditions with ``"target": "aer"`` run on Qiskit Aer, noiseless or with the plan's synthetic noise model.
+    Conditions with ``"target": "ibm"`` (opt-in, token required) are submitted through
+    :mod:`oes_resilience.qbench_ibm`, which also records a calibration snapshot.
+    """
 
     def __init__(self) -> None:
         _require()
-        self._backends: dict[str, Any] = {}
+        self._ibm_backends: dict[str, Any] = {}
+        self._calibrations: dict[str, dict[str, Any]] = {}
+
+    def _ibm_backend_and_calibration(self, name: str) -> tuple[Any, dict[str, Any]]:
+        """Return a cached IBM backend and its calibration snapshot.
+
+        A fresh snapshot is taken for every run. If only its capture time differs from the previous one, the
+        previous snapshot is reused, so the passport stores one snapshot per distinct calibration.
+        """
+        from . import qbench_ibm
+
+        if name not in self._ibm_backends:
+            self._ibm_backends[name] = qbench_ibm.get_backend(name)
+        backend = self._ibm_backends[name]
+        snapshot = qbench_ibm.calibration_snapshot(backend)
+        previous = self._calibrations.get(name)
+
+        def strip(snap: dict[str, Any]) -> dict[str, Any]:
+            return {k: v for k, v in snap.items() if k != "captured_utc"}
+
+        if previous is not None and strip(previous) == strip(snapshot):
+            snapshot = previous
+        self._calibrations[name] = snapshot
+        return backend, snapshot
 
     def software_versions(self) -> dict[str, str]:
+        """Return the Python, NumPy, Qiskit, Qiskit Aer and oes-resilience versions."""
         import platform
 
         import numpy
@@ -115,6 +164,7 @@ class AerExecutor:
 
     def __call__(self, family: str, width: int, params: Mapping[str, int], condition: Mapping[str, Any],
                  plan: Mapping[str, Any]) -> dict[str, Any]:
+        """Transpile and run one instance under one condition; see :class:`oes_resilience.qbench.Executor`."""
         from qiskit import qasm2, transpile
         from qiskit.transpiler import CouplingMap
         from qiskit_aer import AerSimulator
@@ -123,18 +173,21 @@ class AerExecutor:
         target = plan["target_device"]
         n_qubits = circuit.num_qubits
         coupling = CouplingMap.from_line(n_qubits) if target.get("coupling") == "line" else None
-        settings = {"optimization_level": condition["optimization_level"], "basis_gates": list(target["basis_gates"]),
-                    "coupling_map": "line" if coupling is not None else None, "n_physical_qubits": n_qubits,
-                    "seed_transpiler": params["seed_transpiler"]}
-        if condition["target"] == "ibm":  # pragma: no cover - opt-in hardware path, never run in CI
+        settings: dict[str, Any] = {
+            "optimization_level": condition["optimization_level"], "basis_gates": list(target["basis_gates"]),
+            "coupling_map": "line" if coupling is not None else None, "n_physical_qubits": n_qubits,
+            "seed_transpiler": params["seed_transpiler"]}
+        calibration = None
+        if condition["target"] == "ibm":  # opt-in hardware path; tests mock the backend, CI never has a token
             from . import qbench_ibm
 
-            backend = qbench_ibm.get_backend(condition["backend"])
+            backend, calibration = self._ibm_backend_and_calibration(condition["backend"])
             transpiled = transpile(circuit, backend=backend, optimization_level=condition["optimization_level"],
                                    seed_transpiler=params["seed_transpiler"])
             counts = qbench_ibm.run_counts(transpiled, backend, plan["shots"])
             backend_name = f"ibm:{backend.name}"
-            settings = {**settings, "basis_gates": "backend", "coupling_map": "backend"}
+            settings = {**settings, "basis_gates": "backend", "coupling_map": "backend",
+                        "n_physical_qubits": int(backend.num_qubits)}
         else:
             transpiled = transpile(circuit, basis_gates=settings["basis_gates"], coupling_map=coupling,
                                    optimization_level=condition["optimization_level"],
@@ -147,6 +200,7 @@ class AerExecutor:
             backend_name = f"aer_simulator ({'noise=' + noise_name if noise_name else 'noiseless'})"
         ops = transpiled.count_ops()
         return {
+            "calibration": calibration,
             "counts": dict(counts),
             "backend_name": backend_name,
             "circuit_qasm": qasm2.dumps(circuit),
@@ -154,5 +208,6 @@ class AerExecutor:
             "transpile": settings,
             "circuit_stats": {"logical_qubits": n_qubits, "logical_depth": circuit.depth(),
                               "transpiled_depth": transpiled.depth(), "transpiled_cx": int(ops.get("cx", 0)),
+                              "transpiled_2q": sum(1 for inst in transpiled.data if inst.operation.num_qubits == 2),
                               "transpiled_size": transpiled.size()},
         }

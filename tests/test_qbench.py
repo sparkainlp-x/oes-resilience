@@ -14,6 +14,8 @@ import importlib.util
 import io
 import json
 import os
+import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -24,9 +26,10 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from oes_resilience import core, qbench, qbench_ibm  # noqa: E402
+from oes_resilience import core, qbench, qbench_ibm, qbench_sign  # noqa: E402
 
 HAVE_QISKIT = importlib.util.find_spec("qiskit") is not None and importlib.util.find_spec("qiskit_aer") is not None
+HAVE_SSH_KEYGEN = shutil.which("ssh-keygen") is not None
 
 
 def small_plan(**kw):
@@ -61,6 +64,54 @@ class FakeExecutor:
                 "transpiled_qasm": f"{family}-{width}-{condition['optimization_level']}",
                 "transpile": {"optimization_level": condition["optimization_level"]},
                 "circuit_stats": {"logical_qubits": width}}
+
+
+class FakeHardwareExecutor(FakeExecutor):
+    """FakeExecutor that labels the ``hw`` condition as IBM hardware and returns a calibration snapshot."""
+
+    def __call__(self, family, width, params, condition, plan):
+        out = FakeExecutor.__call__(self, family, width, params, condition, plan)
+        if condition["target"] == "ibm":
+            out["backend_name"] = "ibm:fake_device"
+            out["calibration"] = {"schema": qbench_ibm.CALIBRATION_SCHEMA, "backend_name": "fake_device",
+                                  "batch": params["seed_simulator"] % 2}
+        return out
+
+
+class FakeQubit:
+    def __init__(self, t1, t2, frequency):
+        self.t1, self.t2, self.frequency = t1, t2, frequency
+
+
+class FakeInstructionProps:
+    def __init__(self, error, duration):
+        self.error, self.duration = error, duration
+
+
+class FakeTarget:
+    def __init__(self):
+        self.qubit_properties = [FakeQubit(1e-4, 8e-5, 5e9), FakeQubit(None, float("nan"), "bad")]
+        self._ops = {"cx": {(1, 0): FakeInstructionProps(0.01, 3e-7), (0, 1): FakeInstructionProps(0.02, None)},
+                     "measure": {(0,): FakeInstructionProps(0.03, 1e-6)}, "barrier": {None: None}}
+        self.operation_names = list(self._ops)
+
+    def __getitem__(self, name):
+        return self._ops[name]
+
+
+class FakeBackend:
+    name = "fake_device"
+    backend_version = "1.2.3"
+    num_qubits = 2
+
+    def __init__(self, properties=None):
+        self.target = FakeTarget()
+        self._properties = properties
+
+    def properties(self):
+        if self._properties is None:
+            raise RuntimeError("no properties")
+        return self._properties
 
 
 class TempDirCase(unittest.TestCase):
@@ -131,6 +182,11 @@ class StatsTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 qbench.block_bootstrap_ci(diffs, blocks, 200, 0)
 
+    def test_bootstrap_parameter_errors(self):
+        for resamples, alpha in ((0, 0.05), (1.5, 0.05), (True, 0.05), (100, 0.0), (100, 1.0)):
+            with self.subTest(resamples=resamples, alpha=alpha), self.assertRaises(ValueError):
+                qbench.block_bootstrap_ci([0.1, 0.2], ["a", "b"], resamples, 0, alpha)
+
     def test_verdict(self):
         self.assertEqual(qbench.verdict(0.01, 0.2, "A", "B"), "B better")
         self.assertEqual(qbench.verdict(-0.2, -0.01, "A", "B"), "A better")
@@ -166,6 +222,10 @@ class StatsTests(unittest.TestCase):
             qbench.paired_differences(recs[:-1], "A", "B", "hellinger_fidelity", ["family"])
         with self.assertRaises(ValueError):
             qbench.paired_differences(recs, "A", "C", "hellinger_fidelity", ["family"])
+        with self.assertRaisesRegex(ValueError, "metric"):
+            qbench.paired_differences(recs, "A", "B", "accuracy", ["family"])
+        with self.assertRaisesRegex(ValueError, "block"):
+            qbench.paired_differences(recs, "A", "B", "hellinger_fidelity", ["day"])
 
     def test_compare_and_metric_swap(self):
         recs = self._records()
@@ -188,6 +248,8 @@ class InstanceTests(unittest.TestCase):
         self.assertTrue(1 <= a["secret"] < 16)
         self.assertIn("value", qbench.instance_params(7, "qft", 3, 0))
         self.assertNotIn("secret", qbench.instance_params(7, "ghz", 3, 0))
+        with self.assertRaisesRegex(ValueError, "family"):
+            qbench.instance_params(7, "shor", 3, 0)
 
     def test_ideal_distributions(self):
         self.assertEqual(qbench.ideal_distribution("ghz", 3, {}), {"000": 0.5, "111": 0.5})
@@ -201,6 +263,12 @@ class InstanceTests(unittest.TestCase):
 
 
 class PlanTests(TempDirCase):
+    def test_default_plan_matches_preregistered_example(self):
+        committed = ROOT / "examples" / "qbench_plan.json"
+        digest = qbench.sidecar_path(committed).read_text().split()[0]
+        self.assertEqual(qbench.sha256_bytes(committed.read_bytes()), digest)
+        self.assertEqual(qbench.sha256_bytes(qbench.canonical_json(qbench.default_plan())), digest)
+
     def test_canonical_json_is_order_free(self):
         self.assertEqual(qbench.canonical_json({"b": 1, "a": [1, 2]}), qbench.canonical_json({"a": [1, 2], "b": 1}))
         self.assertTrue(qbench.canonical_json({}).endswith(b"\n"))
@@ -278,7 +346,10 @@ class RunAndPassportTests(TempDirCase):
 
     def test_run_plan_records_and_determinism(self):
         plan = small_plan()
-        recs, times = qbench.run_plan(plan, "a" * 64, FakeExecutor())
+        outcome = qbench.run_plan(plan, "a" * 64, FakeExecutor())
+        recs, times = outcome.records, outcome.timestamps
+        self.assertEqual(outcome.calibrations, {})
+        self.assertIsNone(recs[0]["calibration_sha256"])
         self.assertEqual(len(recs), 18 * 3)
         self.assertEqual(set(times), {r["run_id"] for r in recs})
         r0 = recs[0]
@@ -286,7 +357,7 @@ class RunAndPassportTests(TempDirCase):
                     "transpiled_circuit_sha256", "transpile", "metrics", "plan_sha256"):
             self.assertIn(key, r0)
         self.assertEqual(r0["software"], {"fake": "1"})
-        recs2, _ = qbench.run_plan(plan, "a" * 64, FakeExecutor(), software={"fake": "1"})
+        recs2 = qbench.run_plan(plan, "a" * 64, FakeExecutor(), software={"fake": "1"}).records
         self.assertEqual(qbench.canonical_json(qbench.build_results(plan, "a" * 64, recs)),
                          qbench.canonical_json(qbench.build_results(plan, "a" * 64, recs2)))
 
@@ -377,6 +448,31 @@ class RunAndPassportTests(TempDirCase):
         p["artifacts"][0]["path"] = "link.json"
         self.assertTrue(any("outside" in e for e in qbench.validate_passport(p, d)))
 
+    def test_hardware_labelled_runs_write_calibration_artifact(self):
+        plan = small_plan()
+        plan["conditions"].append({"name": "hw", "target": "ibm", "backend": "fake_device",
+                                   "noise_model": None, "optimization_level": 1})
+        qbench.write_prereg(plan, self.tmp / "hw.json")
+        d = self.tmp / "out"
+        out = qbench.run_and_write(self.tmp / "hw.json", d, "hw", executor=FakeHardwareExecutor())
+        calibrations = json.loads((d / "hw_calibration.json").read_text())
+        self.assertEqual(len(calibrations), 2)  # two distinct snapshots, deduplicated by hash
+        for digest, snap in calibrations.items():
+            self.assertEqual(digest, qbench.sha256_bytes(qbench.canonical_json(snap)))
+        hw_runs = [r for r in out["results"]["records"] if r["condition"] == "hw"]
+        self.assertTrue(all(r["calibration_sha256"] in calibrations for r in hw_runs))
+        passport = out["passport"]
+        self.assertIn("calibration_snapshot", [a["role"] for a in passport["artifacts"]])
+        self.assertEqual(qbench.validate_passport(passport, d), [])
+        self.assertIn("includes IBM hardware runs", passport["results"][0]["scope"])
+        self.assertTrue(passport["interpretation"].startswith("Hardware-including"))
+        self.assertIn("CONTAINS HARDWARE RUNS", (d / "hw_report.md").read_text())
+
+    def test_run_and_write_rejects_bad_prefix(self):
+        qbench.write_prereg(small_plan(), self.tmp / "plan.json")
+        with self.assertRaisesRegex(ValueError, "prefix"):
+            qbench.run_and_write(self.tmp / "plan.json", self.tmp / "out", "../x", executor=FakeExecutor())
+
     def test_build_passport_rejects_bad_run_id(self):
         out = self._run()
         with self.assertRaises(ValueError):
@@ -416,6 +512,90 @@ class IBMGateTests(TempDirCase):
                 code = core.main(["qbench", "run", "--prereg", str(path), "--out-dir", str(self.tmp / "o")])
             self.assertEqual(code, core.EXIT_USAGE)
             self.assertIn(qbench_ibm.ENV_TOKEN, err.getvalue())
+
+
+class CalibrationSnapshotTests(unittest.TestCase):
+    def test_snapshot_from_duck_typed_backend(self):
+        props = mock.Mock(last_update_date="2026-10-07T12:00:00Z")
+        snap = qbench_ibm.calibration_snapshot(FakeBackend(props), captured_utc="2026-10-07T12:30:00+00:00")
+        self.assertEqual(snap["schema"], qbench_ibm.CALIBRATION_SCHEMA)
+        self.assertEqual((snap["backend_name"], snap["backend_version"], snap["num_qubits"]),
+                         ("fake_device", "1.2.3", 2))
+        self.assertEqual(snap["captured_utc"], "2026-10-07T12:30:00+00:00")
+        self.assertEqual(snap["properties_last_update"], "2026-10-07T12:00:00Z")
+        self.assertEqual(snap["qubits"][0], {"qubit": 0, "t1_s": 1e-4, "t2_s": 8e-5, "frequency_hz": 5e9})
+        self.assertEqual(snap["qubits"][1], {"qubit": 1, "t1_s": None, "t2_s": None, "frequency_hz": None})
+        self.assertEqual([e["qargs"] for e in snap["instructions"]["cx"]], [[0, 1], [1, 0]])
+        self.assertEqual(snap["instructions"]["cx"][1], {"qargs": [1, 0], "error": 0.01, "duration_s": 3e-7})
+        self.assertEqual(snap["instructions"]["barrier"], [{"qargs": None, "error": None, "duration_s": None}])
+        self.assertEqual(list(snap["instructions"]), ["barrier", "cx", "measure"])
+        json.dumps(snap, allow_nan=False)
+
+    def test_snapshot_tolerates_missing_parts(self):
+        snap = qbench_ibm.calibration_snapshot(FakeBackend(properties=None))
+        self.assertIsNone(snap["properties_last_update"])
+        self.assertTrue(snap["captured_utc"].endswith("+00:00"))
+        bare = qbench_ibm.calibration_snapshot(object())
+        self.assertEqual((bare["backend_name"], bare["num_qubits"], bare["qubits"], bare["instructions"]),
+                         ("unknown", 0, [], {}))
+
+
+class SignatureTests(TempDirCase):
+    def test_missing_ssh_keygen_is_reported(self):
+        target = self.tmp / "p.json"
+        target.write_text("{}")
+        with mock.patch("shutil.which", return_value=None):
+            with self.assertRaisesRegex(FileNotFoundError, "ssh-keygen"):
+                qbench_sign.sign_file(target, target)
+            code = core.main(["qbench", "sign-passport", str(target), "--key", str(target)])
+        self.assertEqual(code, core.EXIT_USAGE)
+
+    def test_missing_inputs(self):
+        with self.assertRaises(FileNotFoundError):
+            qbench_sign.sign_file(self.tmp / "nope.json", self.tmp / "key")
+        with self.assertRaises(FileNotFoundError):
+            qbench_sign.verify_signature(self.tmp / "nope.json", self.tmp / "signers", "me")
+
+    def test_sign_failure_is_reported(self):
+        target = self.tmp / "p.json"
+        target.write_text("{}")
+        failed = subprocess.CompletedProcess([], 1, "", "bad key")
+        with mock.patch("shutil.which", return_value="/usr/bin/ssh-keygen"), \
+                mock.patch("subprocess.run", return_value=failed):
+            with self.assertRaisesRegex(RuntimeError, "bad key"):
+                qbench_sign.sign_file(target, target)
+            err = io.StringIO()
+            with contextlib.redirect_stderr(err):
+                code = core.main(["qbench", "sign-passport", str(target), "--key", str(target)])
+        self.assertEqual(code, core.EXIT_FAILURE)
+
+    @unittest.skipUnless(HAVE_SSH_KEYGEN, "ssh-keygen not installed")
+    def test_sign_and_verify_round_trip(self):
+        key = self.tmp / "key"
+        subprocess.run(["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-C", "test", "-f", str(key)], check=True)
+        signers = self.tmp / "allowed_signers"
+        signers.write_text(f"qbench@example.org {(self.tmp / 'key.pub').read_text().strip()}\n")
+        passport = self.tmp / "run_passport.json"
+        passport.write_text('{"run_id": "x"}\n')
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            self.assertEqual(core.main(["qbench", "sign-passport", str(passport), "--key", str(key)]), 0)
+            # signing twice replaces the old signature instead of failing
+            self.assertEqual(core.main(["qbench", "sign-passport", str(passport), "--key", str(key)]), 0)
+        self.assertIn("key possession only", out.getvalue())
+        self.assertTrue(qbench_sign.signature_path(passport).is_file())
+        with contextlib.redirect_stdout(io.StringIO()):
+            code = core.main(["qbench", "verify-signature", str(passport), "--allowed-signers", str(signers),
+                              "--identity", "qbench@example.org"])
+        self.assertEqual(code, 0)
+        ok, _ = qbench_sign.verify_signature(passport, signers, "someone@else.org")
+        self.assertFalse(ok)
+        passport.write_text('{"run_id": "y"}\n')
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            code = core.main(["qbench", "verify-signature", str(passport), "--allowed-signers", str(signers),
+                              "--identity", "qbench@example.org"])
+        self.assertEqual(code, core.EXIT_FAILURE)
 
 
 class CLITests(TempDirCase):
@@ -469,9 +649,9 @@ class CLITests(TempDirCase):
 @unittest.skipUnless(HAVE_QISKIT, "optional extra 'quantum' (qiskit, qiskit-aer) not installed")
 class SimulatorSmokeTests(TempDirCase):
     def test_noiseless_circuits_hit_their_ideal_outputs(self):
-        from oes_resilience.qbench_sim import AerExecutor
+        from oes_resilience.qbench_sim import QiskitExecutor
 
-        ex = AerExecutor()
+        ex = QiskitExecutor()
         plan = small_plan()
         ideal_cond = plan["conditions"][0]
         for family in ("ghz", "bv", "qft"):
@@ -485,9 +665,9 @@ class SimulatorSmokeTests(TempDirCase):
         self.assertIn("qiskit", ex.software_versions())
 
     def test_noisy_simulator_is_seeded_and_lossy(self):
-        from oes_resilience.qbench_sim import AerExecutor, build_noise_model
+        from oes_resilience.qbench_sim import QiskitExecutor, build_noise_model
 
-        ex = AerExecutor()
+        ex = QiskitExecutor()
         plan = small_plan(shots=400)
         cond = plan["conditions"][1]
         params = qbench.instance_params(plan["seed"], "bv", 4, 1)
@@ -496,6 +676,45 @@ class SimulatorSmokeTests(TempDirCase):
         self.assertLess(qbench.compute_metrics(a["counts"], qbench.ideal_distribution("bv", 4, params))
                         ["success_probability"], 1.0)
         self.assertIsNotNone(build_noise_model({"p1": 0.0, "p2": 0.0, "readout": 0.0}))
+
+    def test_ibm_branch_with_mocked_backend(self):
+        from qiskit.providers.fake_provider import GenericBackendV2
+
+        from oes_resilience.qbench_sim import QiskitExecutor
+
+        backend = GenericBackendV2(num_qubits=6, seed=11)
+        plan = small_plan()
+        cond = {"name": "hw", "target": "ibm", "backend": "generic", "noise_model": None, "optimization_level": 1}
+        params = qbench.instance_params(plan["seed"], "bv", 3, 0)
+        ideal_key = next(iter(qbench.ideal_distribution("bv", 3, params)))
+        with mock.patch.object(qbench_ibm, "get_backend", return_value=backend) as get_backend, \
+                mock.patch.object(qbench_ibm, "run_counts", return_value={ideal_key: plan["shots"]}) as run_counts:
+            ex = QiskitExecutor()
+            first = ex("bv", 3, params, cond, plan)
+            second = ex("bv", 3, params, cond, plan)
+        get_backend.assert_called_once_with("generic")
+        self.assertEqual(run_counts.call_count, 2)
+        self.assertEqual(first["backend_name"], f"ibm:{backend.name}")
+        self.assertEqual(first["transpile"]["basis_gates"], "backend")
+        self.assertEqual(first["transpile"]["n_physical_qubits"], 6)
+        self.assertGreater(first["circuit_stats"]["transpiled_2q"], 0)
+        snap = first["calibration"]
+        self.assertIs(second["calibration"], snap)  # unchanged calibration is stored once
+        self.assertEqual(snap["num_qubits"], 6)
+        self.assertEqual(len(snap["qubits"]), 6)
+        self.assertIsNotNone(snap["qubits"][0]["t1_s"])
+        self.assertTrue(any(e["error"] is not None for ops in snap["instructions"].values() for e in ops))
+        json.dumps(snap, allow_nan=False)
+
+    def test_ibm_condition_needs_token_before_any_backend_call(self):
+        plan = small_plan()
+        plan["conditions"].append({"name": "hw", "target": "ibm", "backend": "generic", "noise_model": None,
+                                   "optimization_level": 1})
+        env = {k: v for k, v in os.environ.items() if k != qbench_ibm.ENV_TOKEN}
+        with mock.patch.dict(os.environ, env, clear=True), mock.patch.object(qbench_ibm, "get_backend") as gb:
+            with self.assertRaises(qbench_ibm.HardwareNotEnabled):
+                qbench.default_executor(plan)
+        gb.assert_not_called()
 
     def test_unknown_family(self):
         from oes_resilience.qbench_sim import build_circuit

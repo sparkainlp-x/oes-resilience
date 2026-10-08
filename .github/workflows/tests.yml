@@ -76,7 +76,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python -m pip install --upgrade pip && python -m pip install ".[test,quantum]"
+      - run: python -m pip install --upgrade pip && python -m pip install ".[test,quantum]" mypy
+      - name: Type-check the qbench modules (strict about untyped defs; other modules are not followed)
+        run: >-
+          mypy --follow-imports=silent --ignore-missing-imports --python-version 3.10 --disallow-untyped-defs
+          --warn-unused-ignores oes_resilience/qbench.py oes_resilience/qbench_sim.py oes_resilience/qbench_ibm.py
+          oes_resilience/qbench_sign.py
       - name: Tests including the qbench simulator smoke tests
         run: python -m pytest --cov --cov-fail-under=90
       - name: qbench prereg, run twice (--verify) and validate the passport (simulator only)
@@ -84,3 +89,10 @@ jobs:
           oes-resilience qbench prereg --out "$RUNNER_TEMP/qb/plan.json" --shots 200 --widths 3,4 --batches 2 --resamples 500
           oes-resilience qbench run --prereg "$RUNNER_TEMP/qb/plan.json" --out-dir "$RUNNER_TEMP/qb/out" --verify
           oes-resilience qbench validate-passport "$RUNNER_TEMP/qb/out/qbench_passport.json"
+      - name: Optional detached signature round trip (throwaway key, ssh-keygen -Y)
+        run: |
+          ssh-keygen -q -t ed25519 -N "" -C ci -f "$RUNNER_TEMP/qb/key"
+          echo "ci@example.invalid $(cat "$RUNNER_TEMP/qb/key.pub")" > "$RUNNER_TEMP/qb/allowed_signers"
+          oes-resilience qbench sign-passport "$RUNNER_TEMP/qb/out/qbench_passport.json" --key "$RUNNER_TEMP/qb/key"
+          oes-resilience qbench verify-signature "$RUNNER_TEMP/qb/out/qbench_passport.json" \
+            --allowed-signers "$RUNNER_TEMP/qb/allowed_signers" --identity ci@example.invalid
