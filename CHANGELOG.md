@@ -7,17 +7,24 @@ All notable changes to this project are documented here. The format follows
 ## [Unreleased]
 
 ### Added
-- **`oes_resilience.qbench` (concept, SIMULATOR ONLY):** a classical evidence and statistics layer around small benchmark circuits (GHZ, Bernstein-Vazirani, QFT-style) run on local Qiskit Aer simulators, noiseless and with a documented synthetic noise model. It includes:
+- **`oes_resilience.qbench` (concept, SIMULATOR ONLY)** by Jean-François Brisson (ORCID 0009-0000-9778-5374), Spark AI NLP. It is a classical evidence and statistics layer around small benchmark circuits (GHZ, Bernstein-Vazirani, QFT-style) run on local Qiskit Aer simulators, noiseless and with a documented synthetic noise model. It includes:
   - a preregistration helper (`qbench prereg`) that writes the plan and its SHA-256 before any run;
-  - per-run records (backend, versions, seeds, shots, circuit hashes, transpile settings, metrics, timestamps);
-  - paired differences with block-bootstrap intervals and a metric-swap check (Hellinger fidelity, TVD, success probability);
+  - per-run records (backend, versions, seeds, shots, circuit hashes, transpile settings, circuit statistics, metrics, timestamps);
+  - paired differences with block-bootstrap intervals, a metric-swap check (Hellinger fidelity, TVD, success probability), block-scheme sensitivity and a per-family breakdown;
   - an evidence passport in the evidence-passport v1 schema, plus a Markdown report.
 
-  Hashes are not signatures, and the self-recorded plan lock needs an external timestamp to be credible. No hardware results, and no QEC, threshold or advantage claim.
-- `oes_resilience.qbench_sim` (Qiskit/Aer executor) and `oes_resilience.qbench_ibm` (opt-in IBM adapter, gated by `OES_QBENCH_IBM_TOKEN`, never run in CI, untested on hardware).
+  Hashes are not signatures, and the self-recorded plan lock needs an external timestamp to be credible. There are no hardware results, and no QEC, threshold or advantage claim.
+- `oes_resilience.qbench_sim`: `QiskitExecutor` (Aer, plus the opt-in IBM path).
+- `oes_resilience.qbench_ibm`: an opt-in IBM adapter, gated by `OES_QBENCH_IBM_TOKEN`, never run in CI and untested on hardware. `calibration_snapshot()` records per-qubit T1/T2/frequency and per-instruction error and duration at run time. Snapshots are stored in `<prefix>_calibration.json` and listed in the passport.
+- `oes_resilience.qbench_sign` and CLI `qbench sign-passport` / `qbench verify-signature`: optional detached SSH signatures (`ssh-keygen -Y`). A signature shows key possession only, not provenance or validity.
+- `docs/qbench.md`: purpose, workflow diagram, plan → run → passport, the statistical method with an honest block-sensitivity example, limitations, signing, and how to submit results to Metriq through metriq-gym.
 - Optional extras `quantum` (qiskit, qiskit-aer) and `ibm` (qiskit-ibm-runtime); the core stays NumPy-only.
-- `tests/test_qbench.py`, and a CI job `optional-quantum` that runs the simulator smoke tests and `qbench prereg` / `run --verify` / `validate-passport`.
-- `examples/qbench_plan.json` (with `.sha256`) and a simulator-only sample run in `examples/qbench_sample/`.
+- `tests/test_qbench.py`, covering a mocked IBM path with `GenericBackendV2`, calibration snapshots, a signing round trip, validation errors, and a check that the default plan reproduces the preregistered example hash.
+- CI job `optional-quantum`: mypy (`--disallow-untyped-defs`) on the qbench modules, the simulator tests, `qbench prereg` / `run --verify` / `validate-passport`, and a throwaway-key signature round trip.
+- `examples/qbench_plan.json` (with `.sha256`, committed before the sample run) and a simulator-only sample run in `examples/qbench_sample/`.
+
+### Changed
+- `CITATION.cff` and `.zenodo.json`: the abstract and keywords now mention the unreleased, simulator-only qbench layer (metadata only; version unchanged, nothing uploaded).
 
 ## [0.5.0] - 2026-10-03
 

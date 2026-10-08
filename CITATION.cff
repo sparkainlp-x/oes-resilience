@@ -45,6 +45,12 @@ abstract: >-
   synthetic; the only real data is the SMAP/MSL evaluation, which describes
   that dataset and protocol only. Not quantum, not GPS, not a physical sensor,
   and no performance claims about operational systems.
+  Unreleased (concept): qbench, a classical, simulator-only evidence layer
+  for small quantum-circuit benchmarks (preregistered plan, paired
+  block-bootstrap comparison with metric and block sensitivity, evidence
+  passport, optional SSH signatures) run on local Qiskit Aer simulators with
+  a synthetic noise model. It has no hardware results and makes no quantum
+  error correction, threshold or advantage claim.
 keywords:
   - anomaly-detection
   - benchmark
@@ -58,6 +64,8 @@ keywords:
   - scientific-software
   - nasa-smap-msl
   - preregistration
+  - quantum-benchmarking
+  - evidence-passport
 references:
   - type: software
     title: "OES-32 Residual Reference"
