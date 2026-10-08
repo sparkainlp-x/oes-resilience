@@ -299,7 +299,7 @@
       }
     }
   },
-  "evidence": "SIMULATOR ONLY (classical simulation; synthetic noise model). No hardware results.",
+  "evidence": "SIMULATOR ONLY unless a record's backend_name starts with 'ibm:'. Synthetic noise model.",
   "plan": {
     "blocks": {
       "primary": [
@@ -409,10 +409,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "6e4968f9f1b7c9c8861f1f15ca966f036ff10dcda3410df1062b15709c06941d",
       "circuit_stats": {
         "logical_depth": 4,
         "logical_qubits": 3,
+        "transpiled_2q": 2,
         "transpiled_cx": 2,
         "transpiled_depth": 6,
         "transpiled_size": 8
@@ -467,10 +469,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "6e4968f9f1b7c9c8861f1f15ca966f036ff10dcda3410df1062b15709c06941d",
       "circuit_stats": {
         "logical_depth": 4,
         "logical_qubits": 3,
+        "transpiled_2q": 2,
         "transpiled_cx": 2,
         "transpiled_depth": 6,
         "transpiled_size": 8
@@ -531,10 +535,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "6e4968f9f1b7c9c8861f1f15ca966f036ff10dcda3410df1062b15709c06941d",
       "circuit_stats": {
         "logical_depth": 4,
         "logical_qubits": 3,
+        "transpiled_2q": 2,
         "transpiled_cx": 2,
         "transpiled_depth": 6,
         "transpiled_size": 8
@@ -595,10 +601,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "6e4968f9f1b7c9c8861f1f15ca966f036ff10dcda3410df1062b15709c06941d",
       "circuit_stats": {
         "logical_depth": 4,
         "logical_qubits": 3,
+        "transpiled_2q": 2,
         "transpiled_cx": 2,
         "transpiled_depth": 6,
         "transpiled_size": 8
@@ -653,10 +661,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "6e4968f9f1b7c9c8861f1f15ca966f036ff10dcda3410df1062b15709c06941d",
       "circuit_stats": {
         "logical_depth": 4,
         "logical_qubits": 3,
+        "transpiled_2q": 2,
         "transpiled_cx": 2,
         "transpiled_depth": 6,
         "transpiled_size": 8
@@ -717,10 +727,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "6e4968f9f1b7c9c8861f1f15ca966f036ff10dcda3410df1062b15709c06941d",
       "circuit_stats": {
         "logical_depth": 4,
         "logical_qubits": 3,
+        "transpiled_2q": 2,
         "transpiled_cx": 2,
         "transpiled_depth": 6,
         "transpiled_size": 8
@@ -781,10 +793,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "6e4968f9f1b7c9c8861f1f15ca966f036ff10dcda3410df1062b15709c06941d",
       "circuit_stats": {
         "logical_depth": 4,
         "logical_qubits": 3,
+        "transpiled_2q": 2,
         "transpiled_cx": 2,
         "transpiled_depth": 6,
         "transpiled_size": 8
@@ -839,10 +853,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "6e4968f9f1b7c9c8861f1f15ca966f036ff10dcda3410df1062b15709c06941d",
       "circuit_stats": {
         "logical_depth": 4,
         "logical_qubits": 3,
+        "transpiled_2q": 2,
         "transpiled_cx": 2,
         "transpiled_depth": 6,
         "transpiled_size": 8
@@ -903,10 +919,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "6e4968f9f1b7c9c8861f1f15ca966f036ff10dcda3410df1062b15709c06941d",
       "circuit_stats": {
         "logical_depth": 4,
         "logical_qubits": 3,
+        "transpiled_2q": 2,
         "transpiled_cx": 2,
         "transpiled_depth": 6,
         "transpiled_size": 8
@@ -967,10 +985,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "6e4968f9f1b7c9c8861f1f15ca966f036ff10dcda3410df1062b15709c06941d",
       "circuit_stats": {
         "logical_depth": 4,
         "logical_qubits": 3,
+        "transpiled_2q": 2,
         "transpiled_cx": 2,
         "transpiled_depth": 6,
         "transpiled_size": 8
@@ -1025,10 +1045,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "6e4968f9f1b7c9c8861f1f15ca966f036ff10dcda3410df1062b15709c06941d",
       "circuit_stats": {
         "logical_depth": 4,
         "logical_qubits": 3,
+        "transpiled_2q": 2,
         "transpiled_cx": 2,
         "transpiled_depth": 6,
         "transpiled_size": 8
@@ -1089,10 +1111,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "6e4968f9f1b7c9c8861f1f15ca966f036ff10dcda3410df1062b15709c06941d",
       "circuit_stats": {
         "logical_depth": 4,
         "logical_qubits": 3,
+        "transpiled_2q": 2,
         "transpiled_cx": 2,
         "transpiled_depth": 6,
         "transpiled_size": 8
@@ -1153,10 +1177,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "35f1912933500a4942c50e5c46f199e0423e295c5695173c032b2d0dec493c5c",
       "circuit_stats": {
         "logical_depth": 5,
         "logical_qubits": 4,
+        "transpiled_2q": 3,
         "transpiled_cx": 3,
         "transpiled_depth": 7,
         "transpiled_size": 10
@@ -1211,10 +1237,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "35f1912933500a4942c50e5c46f199e0423e295c5695173c032b2d0dec493c5c",
       "circuit_stats": {
         "logical_depth": 5,
         "logical_qubits": 4,
+        "transpiled_2q": 3,
         "transpiled_cx": 3,
         "transpiled_depth": 7,
         "transpiled_size": 10
@@ -1282,10 +1310,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "35f1912933500a4942c50e5c46f199e0423e295c5695173c032b2d0dec493c5c",
       "circuit_stats": {
         "logical_depth": 5,
         "logical_qubits": 4,
+        "transpiled_2q": 3,
         "transpiled_cx": 3,
         "transpiled_depth": 7,
         "transpiled_size": 10
@@ -1353,10 +1383,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "35f1912933500a4942c50e5c46f199e0423e295c5695173c032b2d0dec493c5c",
       "circuit_stats": {
         "logical_depth": 5,
         "logical_qubits": 4,
+        "transpiled_2q": 3,
         "transpiled_cx": 3,
         "transpiled_depth": 7,
         "transpiled_size": 10
@@ -1411,10 +1443,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "35f1912933500a4942c50e5c46f199e0423e295c5695173c032b2d0dec493c5c",
       "circuit_stats": {
         "logical_depth": 5,
         "logical_qubits": 4,
+        "transpiled_2q": 3,
         "transpiled_cx": 3,
         "transpiled_depth": 7,
         "transpiled_size": 10
@@ -1483,10 +1517,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "35f1912933500a4942c50e5c46f199e0423e295c5695173c032b2d0dec493c5c",
       "circuit_stats": {
         "logical_depth": 5,
         "logical_qubits": 4,
+        "transpiled_2q": 3,
         "transpiled_cx": 3,
         "transpiled_depth": 7,
         "transpiled_size": 10
@@ -1555,10 +1591,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "35f1912933500a4942c50e5c46f199e0423e295c5695173c032b2d0dec493c5c",
       "circuit_stats": {
         "logical_depth": 5,
         "logical_qubits": 4,
+        "transpiled_2q": 3,
         "transpiled_cx": 3,
         "transpiled_depth": 7,
         "transpiled_size": 10
@@ -1613,10 +1651,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "35f1912933500a4942c50e5c46f199e0423e295c5695173c032b2d0dec493c5c",
       "circuit_stats": {
         "logical_depth": 5,
         "logical_qubits": 4,
+        "transpiled_2q": 3,
         "transpiled_cx": 3,
         "transpiled_depth": 7,
         "transpiled_size": 10
@@ -1684,10 +1724,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "35f1912933500a4942c50e5c46f199e0423e295c5695173c032b2d0dec493c5c",
       "circuit_stats": {
         "logical_depth": 5,
         "logical_qubits": 4,
+        "transpiled_2q": 3,
         "transpiled_cx": 3,
         "transpiled_depth": 7,
         "transpiled_size": 10
@@ -1755,10 +1797,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "35f1912933500a4942c50e5c46f199e0423e295c5695173c032b2d0dec493c5c",
       "circuit_stats": {
         "logical_depth": 5,
         "logical_qubits": 4,
+        "transpiled_2q": 3,
         "transpiled_cx": 3,
         "transpiled_depth": 7,
         "transpiled_size": 10
@@ -1813,10 +1857,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "35f1912933500a4942c50e5c46f199e0423e295c5695173c032b2d0dec493c5c",
       "circuit_stats": {
         "logical_depth": 5,
         "logical_qubits": 4,
+        "transpiled_2q": 3,
         "transpiled_cx": 3,
         "transpiled_depth": 7,
         "transpiled_size": 10
@@ -1884,10 +1930,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "35f1912933500a4942c50e5c46f199e0423e295c5695173c032b2d0dec493c5c",
       "circuit_stats": {
         "logical_depth": 5,
         "logical_qubits": 4,
+        "transpiled_2q": 3,
         "transpiled_cx": 3,
         "transpiled_depth": 7,
         "transpiled_size": 10
@@ -1955,10 +2003,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "61dbcfed48f74be890804f59bec4ec9d2f64bc9980fae2e683d2733db4d62d54",
       "circuit_stats": {
         "logical_depth": 6,
         "logical_qubits": 5,
+        "transpiled_2q": 4,
         "transpiled_cx": 4,
         "transpiled_depth": 8,
         "transpiled_size": 12
@@ -2013,10 +2063,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "61dbcfed48f74be890804f59bec4ec9d2f64bc9980fae2e683d2733db4d62d54",
       "circuit_stats": {
         "logical_depth": 6,
         "logical_qubits": 5,
+        "transpiled_2q": 4,
         "transpiled_cx": 4,
         "transpiled_depth": 8,
         "transpiled_size": 12
@@ -2093,10 +2145,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "61dbcfed48f74be890804f59bec4ec9d2f64bc9980fae2e683d2733db4d62d54",
       "circuit_stats": {
         "logical_depth": 6,
         "logical_qubits": 5,
+        "transpiled_2q": 4,
         "transpiled_cx": 4,
         "transpiled_depth": 8,
         "transpiled_size": 12
@@ -2173,10 +2227,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "61dbcfed48f74be890804f59bec4ec9d2f64bc9980fae2e683d2733db4d62d54",
       "circuit_stats": {
         "logical_depth": 6,
         "logical_qubits": 5,
+        "transpiled_2q": 4,
         "transpiled_cx": 4,
         "transpiled_depth": 8,
         "transpiled_size": 12
@@ -2231,10 +2287,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "61dbcfed48f74be890804f59bec4ec9d2f64bc9980fae2e683d2733db4d62d54",
       "circuit_stats": {
         "logical_depth": 6,
         "logical_qubits": 5,
+        "transpiled_2q": 4,
         "transpiled_cx": 4,
         "transpiled_depth": 8,
         "transpiled_size": 12
@@ -2310,10 +2368,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "61dbcfed48f74be890804f59bec4ec9d2f64bc9980fae2e683d2733db4d62d54",
       "circuit_stats": {
         "logical_depth": 6,
         "logical_qubits": 5,
+        "transpiled_2q": 4,
         "transpiled_cx": 4,
         "transpiled_depth": 8,
         "transpiled_size": 12
@@ -2389,10 +2449,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "61dbcfed48f74be890804f59bec4ec9d2f64bc9980fae2e683d2733db4d62d54",
       "circuit_stats": {
         "logical_depth": 6,
         "logical_qubits": 5,
+        "transpiled_2q": 4,
         "transpiled_cx": 4,
         "transpiled_depth": 8,
         "transpiled_size": 12
@@ -2447,10 +2509,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "61dbcfed48f74be890804f59bec4ec9d2f64bc9980fae2e683d2733db4d62d54",
       "circuit_stats": {
         "logical_depth": 6,
         "logical_qubits": 5,
+        "transpiled_2q": 4,
         "transpiled_cx": 4,
         "transpiled_depth": 8,
         "transpiled_size": 12
@@ -2525,10 +2589,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "61dbcfed48f74be890804f59bec4ec9d2f64bc9980fae2e683d2733db4d62d54",
       "circuit_stats": {
         "logical_depth": 6,
         "logical_qubits": 5,
+        "transpiled_2q": 4,
         "transpiled_cx": 4,
         "transpiled_depth": 8,
         "transpiled_size": 12
@@ -2603,10 +2669,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "61dbcfed48f74be890804f59bec4ec9d2f64bc9980fae2e683d2733db4d62d54",
       "circuit_stats": {
         "logical_depth": 6,
         "logical_qubits": 5,
+        "transpiled_2q": 4,
         "transpiled_cx": 4,
         "transpiled_depth": 8,
         "transpiled_size": 12
@@ -2661,10 +2729,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "61dbcfed48f74be890804f59bec4ec9d2f64bc9980fae2e683d2733db4d62d54",
       "circuit_stats": {
         "logical_depth": 6,
         "logical_qubits": 5,
+        "transpiled_2q": 4,
         "transpiled_cx": 4,
         "transpiled_depth": 8,
         "transpiled_size": 12
@@ -2740,10 +2810,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "61dbcfed48f74be890804f59bec4ec9d2f64bc9980fae2e683d2733db4d62d54",
       "circuit_stats": {
         "logical_depth": 6,
         "logical_qubits": 5,
+        "transpiled_2q": 4,
         "transpiled_cx": 4,
         "transpiled_depth": 8,
         "transpiled_size": 12
@@ -2819,10 +2891,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "e6f2f89d58b3190ffda96813070fd531b4b738006ca3155181799209983157fa",
       "circuit_stats": {
         "logical_depth": 6,
         "logical_qubits": 4,
+        "transpiled_2q": 2,
         "transpiled_cx": 2,
         "transpiled_depth": 9,
         "transpiled_size": 20
@@ -2876,10 +2950,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "e6f2f89d58b3190ffda96813070fd531b4b738006ca3155181799209983157fa",
       "circuit_stats": {
         "logical_depth": 6,
         "logical_qubits": 4,
+        "transpiled_2q": 2,
         "transpiled_cx": 2,
         "transpiled_depth": 9,
         "transpiled_size": 20
@@ -2939,10 +3015,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "e6f2f89d58b3190ffda96813070fd531b4b738006ca3155181799209983157fa",
       "circuit_stats": {
         "logical_depth": 6,
         "logical_qubits": 4,
+        "transpiled_2q": 2,
         "transpiled_cx": 2,
         "transpiled_depth": 8,
         "transpiled_size": 18
@@ -3002,10 +3080,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "0d4796864f52bc1f7fac3772d93671b7e90033fa6a82039cc6f9996990ded870",
       "circuit_stats": {
         "logical_depth": 5,
         "logical_qubits": 4,
+        "transpiled_2q": 1,
         "transpiled_cx": 1,
         "transpiled_depth": 8,
         "transpiled_size": 13
@@ -3059,10 +3139,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "0d4796864f52bc1f7fac3772d93671b7e90033fa6a82039cc6f9996990ded870",
       "circuit_stats": {
         "logical_depth": 5,
         "logical_qubits": 4,
+        "transpiled_2q": 1,
         "transpiled_cx": 1,
         "transpiled_depth": 8,
         "transpiled_size": 13
@@ -3120,10 +3202,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "0d4796864f52bc1f7fac3772d93671b7e90033fa6a82039cc6f9996990ded870",
       "circuit_stats": {
         "logical_depth": 5,
         "logical_qubits": 4,
+        "transpiled_2q": 1,
         "transpiled_cx": 1,
         "transpiled_depth": 7,
         "transpiled_size": 12
@@ -3181,10 +3265,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "063074faf1b64f7b4ed1bd088587eb1b721689f7204277c55376d79767f8bb6e",
       "circuit_stats": {
         "logical_depth": 6,
         "logical_qubits": 4,
+        "transpiled_2q": 2,
         "transpiled_cx": 2,
         "transpiled_depth": 9,
         "transpiled_size": 20
@@ -3238,10 +3324,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "063074faf1b64f7b4ed1bd088587eb1b721689f7204277c55376d79767f8bb6e",
       "circuit_stats": {
         "logical_depth": 6,
         "logical_qubits": 4,
+        "transpiled_2q": 2,
         "transpiled_cx": 2,
         "transpiled_depth": 9,
         "transpiled_size": 20
@@ -3300,10 +3388,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "063074faf1b64f7b4ed1bd088587eb1b721689f7204277c55376d79767f8bb6e",
       "circuit_stats": {
         "logical_depth": 6,
         "logical_qubits": 4,
+        "transpiled_2q": 2,
         "transpiled_cx": 2,
         "transpiled_depth": 8,
         "transpiled_size": 18
@@ -3362,10 +3452,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "6eea684c6581ad55faf288844c6ae1c3936eb8780f1e6d783a229f948886415a",
       "circuit_stats": {
         "logical_depth": 5,
         "logical_qubits": 4,
+        "transpiled_2q": 1,
         "transpiled_cx": 1,
         "transpiled_depth": 8,
         "transpiled_size": 13
@@ -3419,10 +3511,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "6eea684c6581ad55faf288844c6ae1c3936eb8780f1e6d783a229f948886415a",
       "circuit_stats": {
         "logical_depth": 5,
         "logical_qubits": 4,
+        "transpiled_2q": 1,
         "transpiled_cx": 1,
         "transpiled_depth": 8,
         "transpiled_size": 13
@@ -3482,10 +3576,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "6eea684c6581ad55faf288844c6ae1c3936eb8780f1e6d783a229f948886415a",
       "circuit_stats": {
         "logical_depth": 5,
         "logical_qubits": 4,
+        "transpiled_2q": 1,
         "transpiled_cx": 1,
         "transpiled_depth": 7,
         "transpiled_size": 12
@@ -3545,10 +3641,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "dcf44f1f9ed95201d731ec0d9ff54b8d9a55c90562fc32519a16fa2ee1e95ffe",
       "circuit_stats": {
         "logical_depth": 6,
         "logical_qubits": 5,
+        "transpiled_2q": 2,
         "transpiled_cx": 2,
         "transpiled_depth": 9,
         "transpiled_size": 21
@@ -3602,10 +3700,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "dcf44f1f9ed95201d731ec0d9ff54b8d9a55c90562fc32519a16fa2ee1e95ffe",
       "circuit_stats": {
         "logical_depth": 6,
         "logical_qubits": 5,
+        "transpiled_2q": 2,
         "transpiled_cx": 2,
         "transpiled_depth": 9,
         "transpiled_size": 21
@@ -3664,10 +3764,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "dcf44f1f9ed95201d731ec0d9ff54b8d9a55c90562fc32519a16fa2ee1e95ffe",
       "circuit_stats": {
         "logical_depth": 6,
         "logical_qubits": 5,
+        "transpiled_2q": 2,
         "transpiled_cx": 2,
         "transpiled_depth": 8,
         "transpiled_size": 19
@@ -3726,10 +3828,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "23c8eac6eeff5f1e7d3542cb80ea62863ce7818b0536d5ad89e3eead427e3a59",
       "circuit_stats": {
         "logical_depth": 7,
         "logical_qubits": 5,
+        "transpiled_2q": 6,
         "transpiled_cx": 6,
         "transpiled_depth": 13,
         "transpiled_size": 31
@@ -3783,10 +3887,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "23c8eac6eeff5f1e7d3542cb80ea62863ce7818b0536d5ad89e3eead427e3a59",
       "circuit_stats": {
         "logical_depth": 7,
         "logical_qubits": 5,
+        "transpiled_2q": 6,
         "transpiled_cx": 6,
         "transpiled_depth": 13,
         "transpiled_size": 31
@@ -3850,10 +3956,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "23c8eac6eeff5f1e7d3542cb80ea62863ce7818b0536d5ad89e3eead427e3a59",
       "circuit_stats": {
         "logical_depth": 7,
         "logical_qubits": 5,
+        "transpiled_2q": 6,
         "transpiled_cx": 6,
         "transpiled_depth": 13,
         "transpiled_size": 29
@@ -3917,10 +4025,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "298cb41591ed13b46091f913ca76a1afc8be437432172d52bfc62e680252d2e1",
       "circuit_stats": {
         "logical_depth": 7,
         "logical_qubits": 5,
+        "transpiled_2q": 6,
         "transpiled_cx": 6,
         "transpiled_depth": 16,
         "transpiled_size": 31
@@ -3974,10 +4084,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "298cb41591ed13b46091f913ca76a1afc8be437432172d52bfc62e680252d2e1",
       "circuit_stats": {
         "logical_depth": 7,
         "logical_qubits": 5,
+        "transpiled_2q": 6,
         "transpiled_cx": 6,
         "transpiled_depth": 16,
         "transpiled_size": 31
@@ -4039,10 +4151,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "298cb41591ed13b46091f913ca76a1afc8be437432172d52bfc62e680252d2e1",
       "circuit_stats": {
         "logical_depth": 7,
         "logical_qubits": 5,
+        "transpiled_2q": 4,
         "transpiled_cx": 4,
         "transpiled_depth": 15,
         "transpiled_size": 32
@@ -4105,10 +4219,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "b00cb023e06e3c6e710561830c363389c141cea9f940b285e8763b4ddab864cf",
       "circuit_stats": {
         "logical_depth": 7,
         "logical_qubits": 5,
+        "transpiled_2q": 6,
         "transpiled_cx": 6,
         "transpiled_depth": 13,
         "transpiled_size": 31
@@ -4162,10 +4278,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "b00cb023e06e3c6e710561830c363389c141cea9f940b285e8763b4ddab864cf",
       "circuit_stats": {
         "logical_depth": 7,
         "logical_qubits": 5,
+        "transpiled_2q": 6,
         "transpiled_cx": 6,
         "transpiled_depth": 13,
         "transpiled_size": 31
@@ -4230,10 +4348,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "b00cb023e06e3c6e710561830c363389c141cea9f940b285e8763b4ddab864cf",
       "circuit_stats": {
         "logical_depth": 7,
         "logical_qubits": 5,
+        "transpiled_2q": 6,
         "transpiled_cx": 6,
         "transpiled_depth": 13,
         "transpiled_size": 29
@@ -4298,10 +4418,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "4ce43482a5ed74db1250d1c744d144b2730cfa637c3e54f7e1afd807bc89346c",
       "circuit_stats": {
         "logical_depth": 7,
         "logical_qubits": 6,
+        "transpiled_2q": 6,
         "transpiled_cx": 6,
         "transpiled_depth": 15,
         "transpiled_size": 32
@@ -4355,10 +4477,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "4ce43482a5ed74db1250d1c744d144b2730cfa637c3e54f7e1afd807bc89346c",
       "circuit_stats": {
         "logical_depth": 7,
         "logical_qubits": 6,
+        "transpiled_2q": 6,
         "transpiled_cx": 6,
         "transpiled_depth": 15,
         "transpiled_size": 32
@@ -4427,10 +4551,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "4ce43482a5ed74db1250d1c744d144b2730cfa637c3e54f7e1afd807bc89346c",
       "circuit_stats": {
         "logical_depth": 7,
         "logical_qubits": 6,
+        "transpiled_2q": 6,
         "transpiled_cx": 6,
         "transpiled_depth": 13,
         "transpiled_size": 29
@@ -4499,10 +4625,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "755742478029e1378f61dcb3c82ecbb3aa5b61d183550e019a1b36e4f0c6c079",
       "circuit_stats": {
         "logical_depth": 7,
         "logical_qubits": 6,
+        "transpiled_2q": 6,
         "transpiled_cx": 6,
         "transpiled_depth": 16,
         "transpiled_size": 32
@@ -4556,10 +4684,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "755742478029e1378f61dcb3c82ecbb3aa5b61d183550e019a1b36e4f0c6c079",
       "circuit_stats": {
         "logical_depth": 7,
         "logical_qubits": 6,
+        "transpiled_2q": 6,
         "transpiled_cx": 6,
         "transpiled_depth": 16,
         "transpiled_size": 32
@@ -4628,10 +4758,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "755742478029e1378f61dcb3c82ecbb3aa5b61d183550e019a1b36e4f0c6c079",
       "circuit_stats": {
         "logical_depth": 7,
         "logical_qubits": 6,
+        "transpiled_2q": 4,
         "transpiled_cx": 4,
         "transpiled_depth": 15,
         "transpiled_size": 33
@@ -4699,10 +4831,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "e944612d9d55b59ab812e0f321ffbaf0b5d56cb01c73fbc928569a679620739a",
       "circuit_stats": {
         "logical_depth": 7,
         "logical_qubits": 6,
+        "transpiled_2q": 6,
         "transpiled_cx": 6,
         "transpiled_depth": 16,
         "transpiled_size": 32
@@ -4756,10 +4890,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "e944612d9d55b59ab812e0f321ffbaf0b5d56cb01c73fbc928569a679620739a",
       "circuit_stats": {
         "logical_depth": 7,
         "logical_qubits": 6,
+        "transpiled_2q": 6,
         "transpiled_cx": 6,
         "transpiled_depth": 16,
         "transpiled_size": 32
@@ -4828,10 +4964,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "e944612d9d55b59ab812e0f321ffbaf0b5d56cb01c73fbc928569a679620739a",
       "circuit_stats": {
         "logical_depth": 7,
         "logical_qubits": 6,
+        "transpiled_2q": 6,
         "transpiled_cx": 6,
         "transpiled_depth": 15,
         "transpiled_size": 30
@@ -4900,10 +5038,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "19442d8cac1d25b819c92079a1c5688dcab6d03cf7d793c1fc56310aa31e414a",
       "circuit_stats": {
         "logical_depth": 7,
         "logical_qubits": 6,
+        "transpiled_2q": 6,
         "transpiled_cx": 6,
         "transpiled_depth": 16,
         "transpiled_size": 32
@@ -4957,10 +5097,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "19442d8cac1d25b819c92079a1c5688dcab6d03cf7d793c1fc56310aa31e414a",
       "circuit_stats": {
         "logical_depth": 7,
         "logical_qubits": 6,
+        "transpiled_2q": 6,
         "transpiled_cx": 6,
         "transpiled_depth": 16,
         "transpiled_size": 32
@@ -5028,10 +5170,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "19442d8cac1d25b819c92079a1c5688dcab6d03cf7d793c1fc56310aa31e414a",
       "circuit_stats": {
         "logical_depth": 7,
         "logical_qubits": 6,
+        "transpiled_2q": 6,
         "transpiled_cx": 6,
         "transpiled_depth": 14,
         "transpiled_size": 30
@@ -5099,10 +5243,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "05ba2948ec928cfd2de21a1ba09296b12b631aa5065dfc0b1668124e9fffa178",
       "circuit_stats": {
         "logical_depth": 9,
         "logical_qubits": 3,
+        "transpiled_2q": 12,
         "transpiled_cx": 12,
         "transpiled_depth": 27,
         "transpiled_size": 38
@@ -5156,10 +5302,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "05ba2948ec928cfd2de21a1ba09296b12b631aa5065dfc0b1668124e9fffa178",
       "circuit_stats": {
         "logical_depth": 9,
         "logical_qubits": 3,
+        "transpiled_2q": 12,
         "transpiled_cx": 12,
         "transpiled_depth": 27,
         "transpiled_size": 38
@@ -5220,10 +5368,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "05ba2948ec928cfd2de21a1ba09296b12b631aa5065dfc0b1668124e9fffa178",
       "circuit_stats": {
         "logical_depth": 9,
         "logical_qubits": 3,
+        "transpiled_2q": 9,
         "transpiled_cx": 9,
         "transpiled_depth": 21,
         "transpiled_size": 32
@@ -5284,10 +5434,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "e1fec681dc054e20d7c830a78dfa309b459b7a56775a53368eedd80eb973817e",
       "circuit_stats": {
         "logical_depth": 9,
         "logical_qubits": 3,
+        "transpiled_2q": 12,
         "transpiled_cx": 12,
         "transpiled_depth": 27,
         "transpiled_size": 39
@@ -5341,10 +5493,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "e1fec681dc054e20d7c830a78dfa309b459b7a56775a53368eedd80eb973817e",
       "circuit_stats": {
         "logical_depth": 9,
         "logical_qubits": 3,
+        "transpiled_2q": 12,
         "transpiled_cx": 12,
         "transpiled_depth": 27,
         "transpiled_size": 39
@@ -5405,10 +5559,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "e1fec681dc054e20d7c830a78dfa309b459b7a56775a53368eedd80eb973817e",
       "circuit_stats": {
         "logical_depth": 9,
         "logical_qubits": 3,
+        "transpiled_2q": 9,
         "transpiled_cx": 9,
         "transpiled_depth": 21,
         "transpiled_size": 32
@@ -5469,10 +5625,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "f6ce8edc3a1cf4bd0d064dc405fa40e0019a26a662dc8f270f2743b5b2bf5d0d",
       "circuit_stats": {
         "logical_depth": 9,
         "logical_qubits": 3,
+        "transpiled_2q": 12,
         "transpiled_cx": 12,
         "transpiled_depth": 27,
         "transpiled_size": 38
@@ -5526,10 +5684,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "f6ce8edc3a1cf4bd0d064dc405fa40e0019a26a662dc8f270f2743b5b2bf5d0d",
       "circuit_stats": {
         "logical_depth": 9,
         "logical_qubits": 3,
+        "transpiled_2q": 12,
         "transpiled_cx": 12,
         "transpiled_depth": 27,
         "transpiled_size": 38
@@ -5590,10 +5750,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "f6ce8edc3a1cf4bd0d064dc405fa40e0019a26a662dc8f270f2743b5b2bf5d0d",
       "circuit_stats": {
         "logical_depth": 9,
         "logical_qubits": 3,
+        "transpiled_2q": 9,
         "transpiled_cx": 9,
         "transpiled_depth": 23,
         "transpiled_size": 30
@@ -5654,10 +5816,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "46c583a1d675ae40e4c47ecbb219c9010115cfe269f3fe3c4d00e5457e874695",
       "circuit_stats": {
         "logical_depth": 9,
         "logical_qubits": 3,
+        "transpiled_2q": 12,
         "transpiled_cx": 12,
         "transpiled_depth": 27,
         "transpiled_size": 38
@@ -5711,10 +5875,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "46c583a1d675ae40e4c47ecbb219c9010115cfe269f3fe3c4d00e5457e874695",
       "circuit_stats": {
         "logical_depth": 9,
         "logical_qubits": 3,
+        "transpiled_2q": 12,
         "transpiled_cx": 12,
         "transpiled_depth": 27,
         "transpiled_size": 38
@@ -5775,10 +5941,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "46c583a1d675ae40e4c47ecbb219c9010115cfe269f3fe3c4d00e5457e874695",
       "circuit_stats": {
         "logical_depth": 9,
         "logical_qubits": 3,
+        "transpiled_2q": 9,
         "transpiled_cx": 9,
         "transpiled_depth": 20,
         "transpiled_size": 29
@@ -5839,10 +6007,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "8448a701e7d5163e891ae5bb83e9913907e3841c6bea71d0106d035b22588931",
       "circuit_stats": {
         "logical_depth": 11,
         "logical_qubits": 4,
+        "transpiled_2q": 27,
         "transpiled_cx": 27,
         "transpiled_depth": 43,
         "transpiled_size": 69
@@ -5896,10 +6066,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "8448a701e7d5163e891ae5bb83e9913907e3841c6bea71d0106d035b22588931",
       "circuit_stats": {
         "logical_depth": 11,
         "logical_qubits": 4,
+        "transpiled_2q": 27,
         "transpiled_cx": 27,
         "transpiled_depth": 43,
         "transpiled_size": 69
@@ -5968,10 +6140,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "8448a701e7d5163e891ae5bb83e9913907e3841c6bea71d0106d035b22588931",
       "circuit_stats": {
         "logical_depth": 11,
         "logical_qubits": 4,
+        "transpiled_2q": 19,
         "transpiled_cx": 19,
         "transpiled_depth": 38,
         "transpiled_size": 60
@@ -6040,10 +6214,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "ddfe1fcb33ff8fd81ea39ab5608670c3950b1b5c5ff77cc26b40300e233ed956",
       "circuit_stats": {
         "logical_depth": 11,
         "logical_qubits": 4,
+        "transpiled_2q": 27,
         "transpiled_cx": 27,
         "transpiled_depth": 43,
         "transpiled_size": 69
@@ -6097,10 +6273,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "ddfe1fcb33ff8fd81ea39ab5608670c3950b1b5c5ff77cc26b40300e233ed956",
       "circuit_stats": {
         "logical_depth": 11,
         "logical_qubits": 4,
+        "transpiled_2q": 27,
         "transpiled_cx": 27,
         "transpiled_depth": 43,
         "transpiled_size": 69
@@ -6169,10 +6347,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "ddfe1fcb33ff8fd81ea39ab5608670c3950b1b5c5ff77cc26b40300e233ed956",
       "circuit_stats": {
         "logical_depth": 11,
         "logical_qubits": 4,
+        "transpiled_2q": 17,
         "transpiled_cx": 17,
         "transpiled_depth": 39,
         "transpiled_size": 66
@@ -6241,10 +6421,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "4301c55235b89225b1191bdcd47caa76f2c14be6274412c10bc1a049b55475c5",
       "circuit_stats": {
         "logical_depth": 11,
         "logical_qubits": 4,
+        "transpiled_2q": 27,
         "transpiled_cx": 27,
         "transpiled_depth": 43,
         "transpiled_size": 69
@@ -6298,10 +6480,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "4301c55235b89225b1191bdcd47caa76f2c14be6274412c10bc1a049b55475c5",
       "circuit_stats": {
         "logical_depth": 11,
         "logical_qubits": 4,
+        "transpiled_2q": 27,
         "transpiled_cx": 27,
         "transpiled_depth": 43,
         "transpiled_size": 69
@@ -6370,10 +6554,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "4301c55235b89225b1191bdcd47caa76f2c14be6274412c10bc1a049b55475c5",
       "circuit_stats": {
         "logical_depth": 11,
         "logical_qubits": 4,
+        "transpiled_2q": 17,
         "transpiled_cx": 17,
         "transpiled_depth": 38,
         "transpiled_size": 64
@@ -6442,10 +6628,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "0402d8ecd4feaca5120e91442fca5837cef24796f940056d5ef7b1894782512a",
       "circuit_stats": {
         "logical_depth": 11,
         "logical_qubits": 4,
+        "transpiled_2q": 27,
         "transpiled_cx": 27,
         "transpiled_depth": 43,
         "transpiled_size": 69
@@ -6499,10 +6687,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "0402d8ecd4feaca5120e91442fca5837cef24796f940056d5ef7b1894782512a",
       "circuit_stats": {
         "logical_depth": 11,
         "logical_qubits": 4,
+        "transpiled_2q": 27,
         "transpiled_cx": 27,
         "transpiled_depth": 43,
         "transpiled_size": 69
@@ -6571,10 +6761,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "0402d8ecd4feaca5120e91442fca5837cef24796f940056d5ef7b1894782512a",
       "circuit_stats": {
         "logical_depth": 11,
         "logical_qubits": 4,
+        "transpiled_2q": 17,
         "transpiled_cx": 17,
         "transpiled_depth": 37,
         "transpiled_size": 62
@@ -6643,10 +6835,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "8e33503f151bfa9bf44c51502d0cf7666c2d54ab721d0ac29313d9a9ef650174",
       "circuit_stats": {
         "logical_depth": 13,
         "logical_qubits": 5,
+        "transpiled_2q": 50,
         "transpiled_cx": 50,
         "transpiled_depth": 62,
         "transpiled_size": 109
@@ -6700,10 +6894,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "8e33503f151bfa9bf44c51502d0cf7666c2d54ab721d0ac29313d9a9ef650174",
       "circuit_stats": {
         "logical_depth": 13,
         "logical_qubits": 5,
+        "transpiled_2q": 50,
         "transpiled_cx": 50,
         "transpiled_depth": 62,
         "transpiled_size": 109
@@ -6788,10 +6984,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 0,
+      "calibration_sha256": null,
       "circuit_sha256": "8e33503f151bfa9bf44c51502d0cf7666c2d54ab721d0ac29313d9a9ef650174",
       "circuit_stats": {
         "logical_depth": 13,
         "logical_qubits": 5,
+        "transpiled_2q": 30,
         "transpiled_cx": 30,
         "transpiled_depth": 55,
         "transpiled_size": 110
@@ -6873,10 +7071,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "e2e20059461f898a27ca0ca198d713f61a5b3913bd86b8f0d06e406c43488f15",
       "circuit_stats": {
         "logical_depth": 13,
         "logical_qubits": 5,
+        "transpiled_2q": 50,
         "transpiled_cx": 50,
         "transpiled_depth": 62,
         "transpiled_size": 109
@@ -6930,10 +7130,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "e2e20059461f898a27ca0ca198d713f61a5b3913bd86b8f0d06e406c43488f15",
       "circuit_stats": {
         "logical_depth": 13,
         "logical_qubits": 5,
+        "transpiled_2q": 50,
         "transpiled_cx": 50,
         "transpiled_depth": 62,
         "transpiled_size": 109
@@ -7018,10 +7220,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 1,
+      "calibration_sha256": null,
       "circuit_sha256": "e2e20059461f898a27ca0ca198d713f61a5b3913bd86b8f0d06e406c43488f15",
       "circuit_stats": {
         "logical_depth": 13,
         "logical_qubits": 5,
+        "transpiled_2q": 30,
         "transpiled_cx": 30,
         "transpiled_depth": 54,
         "transpiled_size": 109
@@ -7105,10 +7309,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "b4558ff93d27a2847754fa07688f337b7f5b9eecdf4276b314429215f0bb4f9d",
       "circuit_stats": {
         "logical_depth": 13,
         "logical_qubits": 5,
+        "transpiled_2q": 50,
         "transpiled_cx": 50,
         "transpiled_depth": 62,
         "transpiled_size": 109
@@ -7162,10 +7368,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "b4558ff93d27a2847754fa07688f337b7f5b9eecdf4276b314429215f0bb4f9d",
       "circuit_stats": {
         "logical_depth": 13,
         "logical_qubits": 5,
+        "transpiled_2q": 50,
         "transpiled_cx": 50,
         "transpiled_depth": 62,
         "transpiled_size": 109
@@ -7250,10 +7458,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 2,
+      "calibration_sha256": null,
       "circuit_sha256": "b4558ff93d27a2847754fa07688f337b7f5b9eecdf4276b314429215f0bb4f9d",
       "circuit_stats": {
         "logical_depth": 13,
         "logical_qubits": 5,
+        "transpiled_2q": 30,
         "transpiled_cx": 30,
         "transpiled_depth": 55,
         "transpiled_size": 109
@@ -7337,10 +7547,12 @@
     {
       "backend_name": "aer_simulator (noiseless)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "97c0a1c8debee49f6cab417d307ef06ee3ef29a9c50d474a4f1f0a0f526e199e",
       "circuit_stats": {
         "logical_depth": 13,
         "logical_qubits": 5,
+        "transpiled_2q": 50,
         "transpiled_cx": 50,
         "transpiled_depth": 62,
         "transpiled_size": 110
@@ -7394,10 +7606,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "97c0a1c8debee49f6cab417d307ef06ee3ef29a9c50d474a4f1f0a0f526e199e",
       "circuit_stats": {
         "logical_depth": 13,
         "logical_qubits": 5,
+        "transpiled_2q": 50,
         "transpiled_cx": 50,
         "transpiled_depth": 62,
         "transpiled_size": 110
@@ -7482,10 +7696,12 @@
     {
       "backend_name": "aer_simulator (noise=synthetic_v1)",
       "batch": 3,
+      "calibration_sha256": null,
       "circuit_sha256": "97c0a1c8debee49f6cab417d307ef06ee3ef29a9c50d474a4f1f0a0f526e199e",
       "circuit_stats": {
         "logical_depth": 13,
         "logical_qubits": 5,
+        "transpiled_2q": 30,
         "transpiled_cx": 30,
         "transpiled_depth": 54,
         "transpiled_size": 107

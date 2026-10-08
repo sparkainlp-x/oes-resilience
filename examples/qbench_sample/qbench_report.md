@@ -3,7 +3,7 @@
 > **SIMULATOR ONLY.** Classical software running Qiskit Aer simulators with a synthetic noise model. No quantum hardware was used. Nothing here is a QEC, threshold, advantage or hardware claim.
 
 - Plan: `qbench simulator demo: transpiler optimization level under a synthetic noise model` (schema `oes-resilience/qbench-plan/1`), SHA-256 `e0b5bffaa7c0e649ba7b7b08f4b800a94ec6134d0d78ab3c95b23315c2656c07`
-- Lock: self-reported: plan SHA-256 recorded at 2026-10-08T01:44:52.636470+00:00 before the first run; plan file mtime 2026-10-08T01:44:44.872468+00:00; no external timestamp
+- Lock: self-reported: plan SHA-256 recorded at 2026-10-08T18:50:03.357559+00:00 before the first run; plan file mtime 2026-10-08T01:44:44.872468+00:00; no external timestamp
 - Seed 20261007, 2000 shots per run, families ghz, bv, qft, widths [3, 4, 5], 4 seed batches, 108 runs.
 
 ## Condition means
@@ -27,6 +27,13 @@ Differences are oriented so that a positive value favours condition b (for total
 | sanity | `noisy_o1` | `ideal` | total_variation_distance | 12 (family x batch) | +0.1497 | [+0.1091, +0.1908] | ideal better |
 | sanity | `noisy_o1` | `ideal` | success_probability | 12 (family x batch) | +0.1520 | [+0.1126, +0.1918] | ideal better |
 
+## Where the difference comes from (mean paired difference per family, hellinger_fidelity)
+
+| comparison | ghz | bv | qft |
+|---|---|---|---|
+| primary | +0.0000 | +0.0022 | +0.0538 |
+| sanity | +0.0940 | +0.1078 | +0.2541 |
+
 ## Metric-swap check
 
 | comparison | primary verdict | flips across metrics? | verdicts |
@@ -34,7 +41,9 @@ Differences are oriented so that a positive value favours condition b (for total
 | primary | noisy_o3 better | no | hellinger_fidelity: noisy_o3 better; total_variation_distance: noisy_o3 better; success_probability: noisy_o3 better |
 | sanity | ideal better | no | hellinger_fidelity: ideal better; total_variation_distance: ideal better; success_probability: ideal better |
 
-## Block-scheme sensitivity (primary metric)
+For a single-outcome ideal distribution (BV, QFT) the three metrics carry the same information (F = p, TVD = 1 - p); only GHZ separates them, so a flip is unlikely by construction.
+
+## Block-scheme sensitivity (hellinger_fidelity)
 
 | comparison | blocks | n blocks | mean diff | 95% CI | verdict | note |
 |---|---|---|---|---|---|---|
