@@ -1,0 +1,103 @@
+{
+  "blocks": {
+    "primary": [
+      "family",
+      "batch"
+    ],
+    "sensitivity": [
+      [
+        "family"
+      ],
+      [
+        "batch"
+      ]
+    ]
+  },
+  "bootstrap": {
+    "alpha": 0.05,
+    "resamples": 2000,
+    "seed": 20261008
+  },
+  "comparisons": [
+    {
+      "a": "noisy_o1",
+      "b": "noisy_o3",
+      "name": "primary",
+      "role": "primary"
+    },
+    {
+      "a": "noisy_o1",
+      "b": "ideal",
+      "name": "sanity",
+      "role": "sanity"
+    }
+  ],
+  "conditions": [
+    {
+      "name": "ideal",
+      "noise_model": null,
+      "optimization_level": 1,
+      "target": "aer"
+    },
+    {
+      "name": "noisy_o1",
+      "noise_model": "synthetic_v1",
+      "optimization_level": 1,
+      "target": "aer"
+    },
+    {
+      "name": "noisy_o3",
+      "noise_model": "synthetic_v1",
+      "optimization_level": 3,
+      "target": "aer"
+    }
+  ],
+  "decision_rule": "For each comparison and metric, the oriented mean paired difference (positive favours condition b) is called 'b better' if the 95% block-bootstrap percentile interval lies above 0, 'a better' if it lies below 0, and 'no significant difference' otherwise. The metric-swap check reports whether the verdict differs across the three metrics.",
+  "evidence_class": "synthetic",
+  "instances": {
+    "batches": 4,
+    "families": [
+      "ghz",
+      "bv",
+      "qft"
+    ],
+    "widths": [
+      3,
+      4,
+      5
+    ]
+  },
+  "metrics": {
+    "primary": "hellinger_fidelity",
+    "swap": [
+      "total_variation_distance",
+      "success_probability"
+    ]
+  },
+  "noise_models": {
+    "synthetic_v1": {
+      "description": "Synthetic, hand-chosen: depolarizing error p1 after each sx/x, p2 after each cx, symmetric readout flip probability readout. rz is error-free (virtual). Not calibrated to any device.",
+      "p1": 0.001,
+      "p2": 0.01,
+      "readout": 0.02
+    }
+  },
+  "notes": "Simulator-only demonstration of the evidence layer. Results describe this synthetic noise model and these small circuits only; they are not hardware results and support no QEC, threshold or advantage claim.",
+  "pairing": "Every condition runs the same transpiled-from logical circuit with the same seed_simulator and seed_transpiler per instance (common random numbers), so differences are paired by instance.",
+  "plan_version": "1",
+  "schema": "oes-resilience/qbench-plan/1",
+  "seed": 20261007,
+  "shots": 2000,
+  "target_device": {
+    "basis_gates": [
+      "rz",
+      "sx",
+      "x",
+      "cx"
+    ],
+    "coupling": "line",
+    "description": "Hypothetical device: linear qubit coupling, basis {rz, sx, x, cx}. Not any real device.",
+    "name": "synthetic_line_v1"
+  },
+  "title": "qbench simulator demo: transpiler optimization level under a synthetic noise model"
+}
