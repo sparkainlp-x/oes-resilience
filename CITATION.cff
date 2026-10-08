@@ -7,8 +7,8 @@ authors:
     given-names: "Jean-François"
     orcid: "https://orcid.org/0009-0000-9778-5374"
     affiliation: "Spark AI NLP"
-version: 0.5.0
-date-released: "2026-10-03"
+version: 0.5.1
+date-released: "2026-10-08"
 doi: 10.5281/zenodo.23071166
 identifiers:
   - type: doi
