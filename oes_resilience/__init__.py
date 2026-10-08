@@ -10,7 +10,9 @@ Modules: :mod:`.core` (v0.1 single-frame benchmark, OES32 scoring, CLI),
 :mod:`.scorecard` (calibrated detector comparison), :mod:`.stress` (robustness stress suite),
 :mod:`.replay` (preregistered evaluation of timestamped replay files),
 :mod:`.smap_msl` (v0.5: adapter and preregistered evaluation on the real public NASA SMAP/MSL dataset;
-the data is downloaded and hash-verified, never bundled).
+the data is downloaded and hash-verified, never bundled), :mod:`.qbench` (concept, unreleased: a classical
+evidence and statistics layer around local simulator runs of small benchmark circuits; optional extra
+``quantum``; no hardware results).
 """
 
 from ._version import __version__
