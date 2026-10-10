@@ -117,7 +117,7 @@ class TestMissingData(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "fit data must be complete"):
             detectors.RobustZScoreDetector().fit(np.tile(x, (3, 1)))
         self.assertFalse(detectors.IsolationForestDetector.supports_missing)
-        for name in ("oes32", "zscore", "ewma", "cusum", "oes32+ewma"):
+        for name in ("oes32", "oes32-robust", "zscore", "ewma", "cusum", "cusum-cp", "oes32+ewma"):
             self.assertTrue(detectors.get_detector_class(name).supports_missing, name)
 
 
@@ -342,13 +342,20 @@ class TestRunStress(unittest.TestCase):
 
     def test_structure(self):
         frame = self.rows(track="frame")
-        self.assertEqual({r["detector"] for r in frame}, {"oes32", "zscore"})
+        self.assertEqual({r["detector"] for r in frame}, {"oes32", "oes32-robust", "zscore"})
         self.assertEqual({r["scenario"] for r in frame}, {s.name for s in stress.SCENARIOS if "frame" in s.tracks})
         stream_rows = self.rows(track="stream")
         self.assertEqual(len(stream_rows), len(stress.SCENARIOS) * len(stress.DEFAULT_STRESS_DETECTORS))
         for r in self.card["rows"]:
             self.assertEqual(set(r), set(stress.STRESS_FIELDS))
             self.assertTrue(r["supported"])
+        adaptive = self.card["adaptive_threshold"]
+        self.assertEqual(adaptive["status"], "measured")
+        self.assertEqual(adaptive["transition_count"], SMALL_CC.streams * 2)
+        self.assertEqual(adaptive["calibration_window_steps"], 6)
+        self.assertGreaterEqual(adaptive["convergence_rate"], 0.0)
+        self.assertLessEqual(adaptive["convergence_rate"], 1.0)
+        self.assertIsNotNone(adaptive["median_convergence_steps"])
         json.dumps(self.card, allow_nan=False)
         self.assertEqual(self.card["kind"], "stress_scorecard")
 
@@ -409,7 +416,7 @@ class TestRunStress(unittest.TestCase):
     def test_markdown(self):
         md = stress.stress_markdown(self.card, self.timing)
         for text in ("stress scorecard", "Synthetic data only", "background scenarios", "event scenarios",
-                     "CPU time", "retention"):
+                     "Online POT threshold convergence", "POT state is not reset", "CPU time", "retention"):
             self.assertIn(text, md)
 
     def test_package_exports(self):

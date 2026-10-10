@@ -6,6 +6,16 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Added
+- **Streaming POT threshold utility** (`oes_resilience.POTThreshold`): NumPy-only Generalized Pareto tail estimation with a rolling accepted-score window, anomaly masking, sparse-tail empirical fallback, and an explicit reset API for independently confirmed clean regime changes.
+- **`oes32-robust` detector:** per-channel median/MAD scaling and a default `0.45·top-k + 0.35·Huber + 0.20·median` score, with configurable top-k channel scoring (k = 1–4) to preserve narrow events while limiting heavy-tail influence.
+- **`cusum-cp` detector:** finite-window Bayesian change-point posterior that clears CUSUM memory and recentres a stream after a confirmed step; the model and its approximation limits are documented.
+- **`regime_steps` stress scenario:** deterministic stream-only clean baseline transitions with alternating offsets, plus a POT convergence-rate probe that measures recovery against a clean reference threshold without oracle resets.
+- v0.6.0 tests, a canonical `.github/workflows/ci.yml` with pytest/coverage, Ruff, reproducibility checks and Codecov upload (protected-main uploads need `CODECOV_TOKEN` unless token checks are disabled), plus `.github/copilot-instructions.md`.
+
+### Preserved
+- The v0.5 SMAP/MSL preregistration, evaluation protocol, results and hashes remain unchanged. The new adaptive threshold is not retroactively applied to historical replay or SMAP/MSL evaluations.
+
 ## [0.5.0] - 2026-10-03
 
 First evaluation on **real public telemetry**. Everything else in the project remains synthetic, and the existing synthetic caveats are unchanged.

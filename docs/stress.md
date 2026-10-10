@@ -43,8 +43,13 @@ Parameters are `StressParams` fields and CLI flags; the defaults are shown in pa
 | `correlated_burst` | event | both | one common amplitude per step, N(`correlated_mean` (0.6), 0.1), added to `correlated_blocks` (3) adjacent blocks | those blocks |
 | `drift` | event | stream | `drift_slope · (t − onset + 1)` (0.001 per step) on one block | that block |
 | `baseline_step` | event | stream | `+step_size` (0.10) on every channel from onset | all blocks |
+| `regime_steps` (v0.6) | background | stream | four clean segments with offsets 0.00, +0.20, −0.15, and +0.10, alternating from segment to segment | none; all steps are treated as baseline |
 
-The references for background scenarios and burst-type scenarios (`clean`, `clean_burst`) are always evaluated. `drift` and `baseline_step` have no clean counterpart and are reported in absolute terms.
+The references for background scenarios and burst-type scenarios (`clean`, `clean_burst`) are always evaluated. `drift` and `baseline_step` have no clean counterpart and are reported in absolute terms. `regime_steps` is a deterministic background-only probe for how existing detectors behave through alternating operating-level changes; its alarm rates are synthetic and are not evidence that a model has identified a benign regime change.
+
+### Adaptive-threshold convergence (v0.6)
+
+When `cusum-cp` is selected and `regime_steps` is included, the scorecard also streams the detector's maximum block score through `POTThreshold`. POT is calibrated once on held-out clean synthetic streams using post-warmup windows that match the regime-segment length, then runs across each regime-step stream without oracle resets. The known step boundaries are used only to define measurement windows. A transition is counted as converged when the threshold is within 10% of the matched clean reference threshold for three consecutive unflagged scores before the next transition. The report includes the number and rate of converged transitions and median/p90 convergence steps. This measures the combined synthetic `cusum-cp` + POT policy; it is not an online guarantee or a real-telemetry result.
 
 ## Missing data
 
