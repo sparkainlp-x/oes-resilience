@@ -20,7 +20,7 @@ python -m pip install ruff
 
 1. **Tests:** `python -m pytest --cov` must pass, with total coverage of at least 90% (CI enforces this on Python 3.10–3.13). Add tests for new behaviour.
 2. **Lint:** `ruff check .` must be clean.
-3. **Determinism:** if you change scoring, generation or calibration, rerun the example commands in `.github/workflows/tests.yml`. If an example CSV under `examples/` changes on purpose, regenerate it and explain why in the PR. The `--verify` flags of `compare` and `stress` must still report a hash match.
+3. **Determinism:** if you change scoring, generation or calibration, rerun the example commands in `.github/workflows/ci.yml`. If an example CSV under `examples/` changes on purpose, regenerate it and explain why in the PR. The `--verify` flags of `compare` and `stress` must still report a hash match.
 4. **Docs:** update the README, `docs/` and `CHANGELOG.md` (under *Unreleased*) for any user-visible change.
 5. **New detectors:** follow [docs/detector-api.md](docs/detector-api.md). A detector must declare `supports_missing = True` and document its missing-data handling before it may receive NaN; silent zero-filling is not accepted.
 

@@ -14,6 +14,7 @@ the data is downloaded and hash-verified, never bundled).
 """
 
 from ._version import __version__
+from .adaptive_threshold import POTThreshold
 from .core import (
     PROJECT,
     Config,
@@ -29,6 +30,7 @@ from .core import (
     threshold_sweep,
 )
 from .detectors import (
+    ChangePointCUSUMDetector,
     CUSUMDetector,
     DetectionResult,
     Detector,
@@ -37,6 +39,7 @@ from .detectors import (
     MaxAbsDetector,
     OES32Detector,
     OES32EWMAHybridDetector,
+    RobustOES32Detector,
     RobustZScoreDetector,
     TemporalDetector,
     available_detectors,
@@ -55,9 +58,11 @@ from .stress import SCENARIOS, StressConfig, StressParams, run_stress
 __all__ = [
     "PROJECT", "Config", "Event", "Regime", "ScoreWeights", "Status", "__version__", "assess_signal", "main",
     "run_benchmark", "run_trial", "score_signals", "threshold_sweep",
-    "CUSUMDetector", "DetectionResult", "Detector", "EWMADetector", "IsolationForestDetector", "OES32Detector",
+    "CUSUMDetector", "ChangePointCUSUMDetector", "DetectionResult", "Detector", "EWMADetector",
+    "IsolationForestDetector", "OES32Detector",
     "OES32EWMAHybridDetector", "MaxAbsDetector",
-    "RobustZScoreDetector", "TemporalDetector", "available_detectors", "create_detector", "get_detector_class",
+    "RobustOES32Detector", "RobustZScoreDetector", "TemporalDetector", "POTThreshold",
+    "available_detectors", "create_detector", "get_detector_class",
     "load_plugins", "register_detector", "unregister_detector",
     "CompareConfig", "calibrate_threshold", "run_compare", "StreamConfig", "StreamRegime", "generate_streams",
     "SCENARIOS", "StressConfig", "StressParams", "run_stress",

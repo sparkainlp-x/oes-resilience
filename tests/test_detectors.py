@@ -139,7 +139,8 @@ class TestRegistry(unittest.TestCase):
 
     def test_builtins_registered(self):
         self.assertEqual(
-            detectors.available_detectors(), ["cusum", "ewma", "iforest", "maxabs", "oes32", "oes32+ewma", "zscore"]
+            detectors.available_detectors(),
+            ["cusum", "cusum-cp", "ewma", "iforest", "maxabs", "oes32", "oes32+ewma", "oes32-robust", "zscore"]
         )
         self.assertIs(detectors.get_detector_class("oes32"), detectors.OES32Detector)
         self.assertIsInstance(detectors.create_detector("cusum", warmup=4), detectors.CUSUMDetector)
@@ -436,11 +437,13 @@ class TestCompare(unittest.TestCase):
 
     def test_structure(self):
         frame_detectors = {r["detector"] for r in self.rows(track="frame")}
-        self.assertEqual(frame_detectors, {"oes32", "oes32@0.50", "zscore"})
+        self.assertEqual(frame_detectors, {"oes32", "oes32@0.50", "oes32-robust", "zscore"})
         stream_detectors = {r["detector"] for r in self.rows(track="stream")}
         self.assertEqual(stream_detectors, set(scorecard.DEFAULT_DETECTORS))
         self.assertEqual(len(self.rows(track="stream")), len(scorecard.DEFAULT_DETECTORS) * 5)
-        expected = {("frame", "oes32"), ("frame", "zscore")} | {("stream", d) for d in scorecard.DEFAULT_DETECTORS}
+        expected = {("frame", "oes32"), ("frame", "oes32-robust"), ("frame", "zscore")} | {
+            ("stream", d) for d in scorecard.DEFAULT_DETECTORS
+        }
         self.assertEqual({(c["track"], c["detector"]) for c in self.card["calibration"]}, expected)
         for c in self.card["calibration"]:
             for entry in c["per_regime"].values():

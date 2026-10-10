@@ -66,7 +66,9 @@ from .streams import (
     generate_streams,
 )
 
-DEFAULT_DETECTORS: tuple[str, ...] = ("oes32", "zscore", "ewma", "cusum", "oes32+ewma")
+DEFAULT_DETECTORS: tuple[str, ...] = (
+    "oes32", "oes32-robust", "zscore", "ewma", "cusum", "cusum-cp", "oes32+ewma"
+)
 TRACKS: tuple[str, ...] = ("frame", "stream")
 CLEAN_FRAME_REGIMES: tuple[Regime, ...] = (Regime.STABLE, Regime.NOISY)
 REFERENCE_LABEL = "oes32@0.50"

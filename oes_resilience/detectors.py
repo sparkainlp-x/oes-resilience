@@ -636,3 +636,173 @@ class IsolationForestDetector(Detector):
 
     def params(self) -> dict[str, Any]:
         return {"n_estimators": self.n_estimators, "max_samples": self.max_samples, "random_state": self.random_state}
+
+
+@register_detector
+class RobustOES32Detector(Detector):
+    """OES32-style score using per-channel MAD scaling, Huber loss, and top-k channels.
+
+    The clean fit set supplies a median and robust scale for every channel. Within each
+    block, the top-k absolute standardized residuals preserve narrow events; a Huber
+    RMS term adds block-wide evidence without allowing a few extreme residuals to
+    dominate the aggregation.
+    """
+
+    name = "oes32-robust"
+    rule = "0.45·top-k mean + 0.35·sqrt(mean Huber loss) + 0.20·median absolute z per block"
+    default_threshold = 4.0
+    requires_fit = True
+    supports_missing = True
+
+    def __init__(
+        self,
+        config: Config | None = None,
+        threshold: float | None = None,
+        top_k: int = 4,
+        huber_delta: float = 1.345,
+        weights: tuple[float, float, float] = (0.45, 0.35, 0.20),
+    ) -> None:
+        super().__init__(config, threshold)
+        self.top_k = _require_int("top_k", top_k, 1)
+        if self.top_k > 4:
+            raise ValueError("top_k must be in [1, 4].")
+        self.huber_delta = _require_finite("huber_delta", huber_delta, 0.0)
+        if self.huber_delta <= 0:
+            raise ValueError("huber_delta must be > 0.")
+        if len(weights) != 3:
+            raise ValueError("weights must contain (top-k, Huber, median) values.")
+        self.weights = tuple(_require_finite(f"weights[{i}]", weight, 0.0) for i, weight in enumerate(weights))
+        if not np.isclose(sum(self.weights), 1.0, rtol=0.0, atol=1e-9):
+            raise ValueError("weights must sum to 1.")
+        self.median: np.ndarray | None = None
+        self.scale: np.ndarray | None = None
+
+    def _fit(self, frames: np.ndarray) -> None:
+        self.median = np.median(frames, axis=0)
+        mad = np.median(np.abs(frames - self.median), axis=0)
+        self.scale = np.maximum(1.4826 * mad, MIN_SCALE)
+
+    def _score_frames(self, frames: np.ndarray) -> np.ndarray:
+        blocks = self._blocks(frames)
+        median = self.median.reshape(self.config.blocks, self.config.block_size)
+        scale = self.scale.reshape(self.config.blocks, self.config.block_size)
+        observed = ~np.isnan(blocks)
+        residual = np.abs((blocks - median) / scale)
+        residual = np.where(observed, residual, 0.0)
+        count = observed.sum(axis=-1)
+
+        ranked = np.sort(np.where(observed, residual, -np.inf), axis=-1)[..., ::-1]
+        selected = np.where(np.isfinite(ranked[..., : self.top_k]), ranked[..., : self.top_k], 0.0)
+        top_count = np.maximum(1, np.minimum(count, self.top_k))
+        topk_score = selected.sum(axis=-1) / top_count
+
+        delta = self.huber_delta
+        huber = np.where(residual <= delta, 0.5 * residual**2, delta * (residual - 0.5 * delta))
+        huber_mean = huber.sum(axis=-1) / np.maximum(count, 1)
+        huber_score = np.sqrt(huber_mean)
+        median_score = np.ma.median(np.ma.array(residual, mask=~observed), axis=-1).filled(0.0)
+        w_topk, w_huber, w_median = self.weights
+        score = w_topk * topk_score + w_huber * huber_score + w_median * median_score
+        return np.where(count > 0, score, 0.0)
+
+    def params(self) -> dict[str, Any]:
+        result: dict[str, Any] = {
+            "top_k": self.top_k,
+            "huber_delta": self.huber_delta,
+            "weights": list(self.weights),
+            "scale": "1.4826 * per-channel MAD",
+        }
+        if self.median is not None:
+            result["median_mean"] = float(np.mean(self.median))
+            result["scale_mean"] = float(np.mean(self.scale))
+        return result
+
+
+@register_detector
+class ChangePointCUSUMDetector(TemporalDetector):
+    """CUSUM with a lightweight Bayesian change-point posterior and state reset.
+
+    The change-point trigger compares a short window under a fixed, standardized
+    Gaussian baseline with a Bayesian alternative having an unknown mean. A geometric
+    hazard supplies the prior odds. On a strong change posterior, CUSUM memory is
+    cleared and the observed shift is adopted as the new local mean. This is a
+    finite-window BOCPD-style approximation, not a general-purpose Bayesian model.
+    """
+
+    name = "cusum-cp"
+    rule = "two-sided CUSUM with a rolling Bayesian change-point posterior and regime reset"
+    default_threshold = 5.0
+
+    def __init__(
+        self,
+        config: Config | None = None,
+        threshold: float | None = None,
+        warmup: int = 16,
+        k: float = 0.5,
+        change_window: int = 3,
+        hazard_interval: int = 200,
+        change_probability: float = 0.8,
+        prior_mean_variance: float = 4.0,
+    ) -> None:
+        super().__init__(config, threshold, warmup)
+        self.k = _require_finite("k", k, 0.0)
+        self.change_window = _require_int("change_window", change_window, 2)
+        self.hazard_interval = _require_int("hazard_interval", hazard_interval, 2)
+        self.change_probability = _require_finite("change_probability", change_probability, 0.0)
+        if self.change_probability >= 1.0:
+            raise ValueError("change_probability must be in (0, 1).")
+        self.prior_mean_variance = _require_finite("prior_mean_variance", prior_mean_variance, 0.0)
+        if self.prior_mean_variance <= 0:
+            raise ValueError("prior_mean_variance must be > 0.")
+
+    def _score_streams(self, streams: np.ndarray) -> np.ndarray:
+        z = self.standardize(streams)
+        scores = np.zeros_like(z)
+        hazard = 1.0 / self.hazard_interval
+        log_prior_odds = np.log(hazard) - np.log1p(-hazard)
+        tau2 = self.prior_mean_variance
+        m = self.change_window
+        log_bayes_constant = -0.5 * np.log1p(m * tau2)
+        bayes_coefficient = 0.5 * tau2 / (1.0 + m * tau2)
+
+        for row in range(z.shape[0]):
+            blocks = z.shape[2]
+            offset = np.zeros(blocks)
+            upper = np.zeros(blocks)
+            lower = np.zeros(blocks)
+            history = np.zeros((m, blocks))
+            count = np.zeros(blocks, dtype=np.int64)
+            for step in range(self.warmup, z.shape[1]):
+                residual = z[row, step] - offset
+                history[:-1] = history[1:]
+                history[-1] = residual
+                count = np.minimum(count + 1, m)
+                full_window = count == m
+                total = history.sum(axis=0)
+                log_bayes_factor = log_bayes_constant + bayes_coefficient * total**2
+                log_odds = np.clip(log_bayes_factor + log_prior_odds, -700.0, 700.0)
+                change_prob = np.where(full_window, 1.0 / (1.0 + np.exp(-log_odds)), 0.0)
+
+                upper = np.maximum(0.0, upper + residual - self.k)
+                lower = np.maximum(0.0, lower - residual - self.k)
+                scores[row, step] = np.maximum(np.maximum(upper, lower), change_prob / self.change_probability)
+
+                changed = change_prob >= self.change_probability
+                if changed.any():
+                    offset[changed] += history[:, changed].mean(axis=0)
+                    upper[changed] = 0.0
+                    lower[changed] = 0.0
+                    history[:, changed] = 0.0
+                    count[changed] = 0
+        return scores
+
+    def params(self) -> dict[str, Any]:
+        return {
+            **super().params(),
+            "k": self.k,
+            "change_window": self.change_window,
+            "hazard_interval": self.hazard_interval,
+            "change_probability": self.change_probability,
+            "prior_mean_variance": self.prior_mean_variance,
+            "change_point_model": "finite-window Gaussian Bayes factor with geometric-hazard prior",
+        }

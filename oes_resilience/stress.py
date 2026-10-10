@@ -34,6 +34,7 @@ import argparse
 import math
 import time
 from collections.abc import Mapping, Sequence
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -41,6 +42,7 @@ import numpy as np
 
 from . import core
 from ._version import __version__
+from .adaptive_threshold import POTThreshold
 from .core import (
     BASE_NOISE,
     BURST_ADDITION,
@@ -71,7 +73,9 @@ from .streams import StreamConfig
 #: Seed purpose key for the stress suite.
 PURPOSE_STRESS = 300
 TRACK_KEYS: Mapping[str, int] = {"frame": 0, "stream": 1}
-DEFAULT_STRESS_DETECTORS: tuple[str, ...] = ("oes32", "zscore", "ewma", "cusum", "oes32+ewma")
+DEFAULT_STRESS_DETECTORS: tuple[str, ...] = (
+    "oes32", "oes32-robust", "zscore", "ewma", "cusum", "cusum-cp", "oes32+ewma"
+)
 
 
 @dataclass(frozen=True)
@@ -174,6 +178,8 @@ SCENARIOS: tuple[Scenario, ...] = (
              tracks=("stream",)),
     Scenario("baseline_step", 14, "abrupt +step_size on every channel from onset (truth = all blocks)",
              event="step", tracks=("stream",)),
+    Scenario("regime_steps", 15, "four clean baseline regimes with alternating step offsets",
+             background="regime_steps", tracks=("stream",), reference="clean"),
 )
 SCENARIO_BY_NAME: Mapping[str, Scenario] = {s.name: s for s in SCENARIOS}
 SCENARIO_NAMES: tuple[str, ...] = tuple(SCENARIO_BY_NAME)
@@ -211,7 +217,12 @@ def generate_stress(
     s = get_scenario(scenario)
     channels, bs, blocks = config.channels, config.block_size, config.blocks
     shape = (steps, channels)
-    if s.background == "student_t":
+    if s.background == "regime_steps":
+        x = rng.normal(*BASE_NOISE, shape)
+        levels = (0.0, 0.20, -0.15, 0.10)
+        for indices, level in zip(np.array_split(np.arange(steps), len(levels)), levels, strict=True):
+            x[indices] += level
+    elif s.background == "student_t":
         x = rng.standard_t(params.t_df, shape) * params.t_scale()
     else:
         x = rng.normal(*BASE_NOISE, shape)
@@ -395,6 +406,90 @@ def _evaluate_track(
     return rows
 
 
+def _adaptive_threshold_convergence(sc: StressConfig, detector: Detector) -> dict[str, Any] | None:
+    """Measure POT recovery around the known boundaries of the seeded regime-step trace.
+
+    The change-point detector and POT threshold run online without oracle resets. Ground
+    truth is used only to define evaluation windows. The held-out clean reference uses
+    post-warmup windows matching the regime-segment length. A transition is recovered
+    once three consecutive non-anomalous scores leave the threshold within 10% of that
+    reference threshold, before the next known transition.
+    """
+    cc = sc.compare
+    if "regime_steps" not in sc.scenarios or "stream" not in cc.tracks:
+        return None
+
+    segments = [part for part in np.array_split(np.arange(cc.stream.steps), 4) if part.size]
+    boundaries = [int(part[0]) for part in segments[1:] if int(part[0]) >= cc.stream.warmup]
+    if not boundaries:
+        return {
+            "detector": "cusum-cp",
+            "status": "no_regime_transition_after_warmup",
+            "transition_count": 0,
+            "converged_transitions": 0,
+            "convergence_rate": None,
+            "median_convergence_steps": None,
+            "p90_convergence_steps": None,
+            "reference_threshold": None,
+            "calibration_window_steps": None,
+        }
+
+    calibration_window = min(len(part) for part in segments[1:] if int(part[0]) >= cc.stream.warmup)
+    clean_scores = []
+    clean_count = max(cc.calibration_streams, 20)
+    for x, _, _ in _stress_chunks("clean", "stream", clean_count, sc):
+        clean_scores.append(
+            detector.score(x).max(axis=2)[:, cc.stream.warmup:cc.stream.warmup + calibration_window].ravel()
+        )
+    calibration = np.concatenate(clean_scores)
+    risk_level = min(cc.target_fp, 0.05)
+    base = POTThreshold(
+        risk_level=risk_level, init_quantile=0.90, window_size=500, min_exceedances=8
+    ).fit_calibration(calibration)
+    reference_threshold = float(base.threshold)
+
+    latencies: list[int] = []
+    transition_count = 0
+    tolerance = 0.10 * max(abs(reference_threshold), 1e-12)
+    for x, _, _ in _stress_chunks("regime_steps", "stream", cc.streams, sc):
+        scores = detector.score(x).max(axis=2)
+        for stream_scores in scores:
+            pot = deepcopy(base)
+            flagged = np.zeros(cc.stream.steps, dtype=bool)
+            thresholds = np.full(cc.stream.steps, reference_threshold, dtype=float)
+            for step in range(cc.stream.warmup, cc.stream.steps):
+                flagged[step], _ = pot.update(float(stream_scores[step]))
+                thresholds[step] = float(pot.threshold)
+
+            for idx, boundary in enumerate(boundaries):
+                end = boundaries[idx + 1] if idx + 1 < len(boundaries) else cc.stream.steps
+                transition_count += 1
+                consecutive = 0
+                for step in range(boundary, end):
+                    within_band = abs(thresholds[step] - reference_threshold) <= tolerance
+                    consecutive = consecutive + 1 if within_band and not flagged[step] else 0
+                    if consecutive == 3:
+                        latencies.append(step - boundary + 1)
+                        break
+
+    return {
+        "detector": "cusum-cp",
+        "status": "measured",
+        "scenario": "regime_steps",
+        "risk_level": risk_level,
+        "calibration_window_steps": calibration_window,
+        "reference_threshold": _round(reference_threshold),
+        "tolerance_fraction": 0.10,
+        "required_consecutive_clean_updates": 3,
+        "transition_count": transition_count,
+        "converged_transitions": len(latencies),
+        "convergence_rate": _round(len(latencies) / transition_count) if transition_count else None,
+        "median_convergence_steps": _round(float(np.median(latencies))) if latencies else None,
+        "p90_convergence_steps": _round(float(np.percentile(latencies, 90))) if latencies else None,
+        "evaluation_policy": "ground-truth boundaries define windows only; no POT oracle resets",
+    }
+
+
 def run_stress(sc: StressConfig) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """Run the stress suite. Returns ``(scorecard, timing)``; only the scorecard is deterministic."""
     cc = sc.compare
@@ -410,6 +505,7 @@ def run_stress(sc: StressConfig) -> tuple[dict[str, Any], list[dict[str, Any]]]:
         rows += _evaluate_track(track, sc, detectors, thresholds, timer)
     config = cc.config.to_dict()
     config["threshold"] = None
+    adaptive_threshold = _adaptive_threshold_convergence(sc, detectors["cusum-cp"]) if "cusum-cp" in detectors else None
     scorecard = {
         "project": PROJECT,
         "version": __version__,
@@ -434,6 +530,7 @@ def run_stress(sc: StressConfig) -> tuple[dict[str, Any], list[dict[str, Any]]]:
             for name, d in detectors.items()
         },
         "calibration": calibrations,
+        "adaptive_threshold": adaptive_threshold,
         "rows": rows,
     }
     return scorecard, timer.report()
@@ -463,6 +560,28 @@ def stress_markdown(scorecard: Mapping[str, Any], timing: Sequence[Mapping[str, 
     for name, s in scorecard["scenarios"].items():
         lines.append(f"| {name} | {s['kind']} | {', '.join(s['tracks'])} | {s['reference'] or '–'} | "
                      f"{s['description']} |")
+    adaptive = scorecard.get("adaptive_threshold")
+    if adaptive is not None:
+        convergence_rate = adaptive["convergence_rate"]
+        median_steps = adaptive["median_convergence_steps"]
+        p90_steps = adaptive["p90_convergence_steps"]
+        lines += [
+            "",
+            "## Online POT threshold convergence",
+            "",
+            "Ground-truth regime boundaries define measurement windows only; "
+            "the POT state is not reset at transitions. Clean calibration windows "
+            "match post-reset segment length. Recovery requires three "
+            "consecutive unflagged scores with the threshold within 10% of the "
+            "held-out clean reference threshold.",
+            "",
+            f"Converged {adaptive['converged_transitions']} / {adaptive['transition_count']} transitions "
+            f"({convergence_rate if convergence_rate is not None else 'n/a'}); median "
+            f"{median_steps if median_steps is not None else 'n/a'} steps, "
+            f"p90 {p90_steps if p90_steps is not None else 'n/a'} steps. "
+            f"Detector: `{adaptive['detector']}`; POT risk level {adaptive.get('risk_level', 'n/a')}; "
+            f"reference threshold {adaptive['reference_threshold']}.",
+        ]
     for track in ("frame", "stream"):
         rows = [r for r in scorecard["rows"] if r["track"] == track]
         if not rows:

@@ -1,15 +1,19 @@
 # OES-Resilience
 
 **Benchmarking telemetry intelligence under real-world stress**: an open, reproducible benchmark for multichannel telemetry anomaly detection, with **OES32** as its transparent reference detector.
-
-[![tests](https://github.com/sparkainlp-x/oes-resilience/actions/workflows/tests.yml/badge.svg)](https://github.com/sparkainlp-x/oes-resilience/actions/workflows/tests.yml)
+[![CI Benchmark & Verification Suite](https://github.com/sparkainlp-x/oes-resilience/actions/workflows/ci.yml/badge.svg)](https://github.com/sparkainlp-x/oes-resilience/actions/workflows/ci.yml)
+[![Codecov Coverage](https://img.shields.io/codecov/c/github/sparkainlp-x/oes-resilience/main?logo=codecov)](https://codecov.io/gh/sparkainlp-x/oes-resilience)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23071166.svg)](https://doi.org/10.5281/zenodo.23071166)
-[![Python 3.10–3.13](https://img.shields.io/badge/python-3.10%E2%80%933.13-blue.svg)](.github/workflows/tests.yml)
+[![Python 3.10–3.13](https://img.shields.io/badge/python-3.10%E2%80%933.13-blue.svg)](.github/workflows/ci.yml)
 [![Status: research prototype](https://img.shields.io/badge/status-research%20prototype-orange.svg)](#what-it-is-not)
 [![Evidence: SYNTHETIC + labelled SMAP/MSL](https://img.shields.io/badge/evidence-SYNTHETIC%20%2B%20labelled%20SMAP%2FMSL-blue.svg)](#what-it-is-not)
 
 Version 0.5.0 adds the first evaluation on **real public telemetry**: a [blind, preregistered comparison on the NASA SMAP/MSL anomaly dataset](#real-public-telemetry-nasa-smapmsl-v050) (Hundman et al. 2018). The protocol was locked and pushed before any test data was scored. Under it, OES32 did **not** meet its pre-stated success criterion: it beat only EWMA on SMAP, and `maxabs` and CUSUM scored a higher pooled F1 (not significantly). Version 0.4.0 added [replay evaluation](#replay-evaluation-v040). It scores a recorded or synthetic telemetry replay against a hashed preregistration using the same detectors, and by default every threshold is calibrated to the shared ~1% FP budget. Version 0.3.0 added a seeded [stress suite](#stress-suite-v030) with robustness metrics. It covers drift, baseline steps, missing channels, clipping and saturation, heavy-tailed noise, narrow and cross-block events, global shift plus burst, and correlated blocks. That release also added mask-aware scoring for missing data and an `oes32+ewma` hybrid detector, which measurably does not beat EWMA alone. Version 0.2.0 added the detector plugin API, robust z-score, EWMA and CUSUM baselines (plus an optional Isolation Forest), multi-step synthetic streams and a calibrated [detector comparison](#detector-comparison-v020). Both build on the v0.1.0 benchmark harness, four **synthetic** single-frame regimes and the OES32 reference detector, whose v0.1 results below are unchanged. NumPy is the only required dependency. Everything except the clearly labelled v0.5 SMAP/MSL section is synthetic, and the synthetic numbers say nothing about real telemetry.
+
+## v0.6.0 adaptive methods
+
+This upgrade adds `POTThreshold`, a NumPy-only streaming EVT threshold utility with a rolling clean-score window and anomaly masking; `oes32-robust`, a per-channel MAD/Huber detector with top-k channel scoring; and `cusum-cp`, a finite-window Bayesian change-point heuristic that resets CUSUM memory and recentres after a confirmed regime step. The seeded `regime_steps` stress case adds alternating baseline offsets. These are benchmark methods, not deployment guarantees. Dynamic POT is kept separate from frozen replay thresholds, and none of the v0.5 SMAP/MSL preregistration, test results or hashes are retroactively changed.
 
 ## What it is
 
@@ -352,19 +356,20 @@ Without installing, run `python -m oes_resilience …` from the repository root 
 
 ```bash
 python -m pip install -e ".[test]"
-python -m pytest --cov            # 215 tests (+103 subtests; 1 skipped without scikit-learn, 1 without SciPy); coverage gate 90%
+python -m pytest --cov --cov-report=xml  # 225 passed, 1 skipped; 98.63% total coverage (99.01% lines) on Python 3.12
 python -m oes_resilience test     # stdlib unittest runner, no pytest needed (source checkout; else pass --tests-dir)
 ```
 
-CI runs `ruff check`, pytest with the coverage gate, a byte-for-byte check of the example CSVs (including the compare, stress and replay scorecards), and a pip-install smoke test on Python 3.10–3.13. A separate job installs scikit-learn and tests the optional Isolation Forest. The tests cover the scoring formula worked by hand, block mapping for arbitrary block sizes, seed stability, validation errors, metric edge cases, the sweep matching separate runs, reproducible exports, the CLI exit codes, and replay input hardening and preregistration locking. The SMAP/MSL tests run on tiny synthetic fixtures. They check the adapter against the built-in EWMA/CUSUM and the OES32 formula, fetching and SHA-256 verification (including a zip-slip member), the hand-worked event metrics, the Wilcoxon test against SciPy (in the job that has SciPy), and blindness: moving every test label leaves every threshold unchanged. [REVIEW.md](REVIEW.md) is the review of the original prototype (kept in [`original/`](original/)) that this release is based on.
+CI in `.github/workflows/ci.yml` runs `ruff check`, pytest with a 90% coverage gate, per-job coverage summaries and two-week HTML reports, a byte-for-byte check of the example CSVs (including compare, stress and replay scorecards), and a pip-install smoke test on Python 3.10–3.13. It uploads XML coverage to Codecov from the Python 3.12 job; protected-branch uploads require the GitHub Actions secret `CODECOV_TOKEN` unless Codecov token authentication is disabled for the organization. A separate job installs scikit-learn and tests the optional Isolation Forest. Tests also cover adaptive-threshold anomaly masking, Student-t stress, robust top-k localization, missing data and seeded regime transitions. The stress report measures POT threshold convergence after each regime step without oracle resets. The SMAP/MSL tests run on tiny synthetic fixtures and preserve the locked protocol. [REVIEW.md](REVIEW.md) is the review of the original prototype (kept in [`original/`](original/)) that this release is based on.
 
 ## Roadmap
 
 - **v0.2.0 (released):** detector plugin API; robust z-score, EWMA and CUSUM baselines (optional Isolation Forest); multi-step stream track; calibrated comparative scorecard.
 - **v0.3.0 (released):** stress suite with seeded ground truth, mask-aware missing-data scoring, the `oes32+ewma` hybrid, and robustness metrics (recall retention and FP inflation with Wilson intervals).
 - **v0.4.0 (released):** replay evaluation against a hashed preregistration, with calibrated thresholds by default, the plugin detectors, and the `maxabs` baseline.
-- **v0.5.0 (this version):** a NASA SMAP/MSL adapter (download with SHA-256 verification; the data is not bundled) and a blind, preregistered evaluation on that real public telemetry. Result: OES32 did not meet its pre-stated success criterion.
-- **Next (not started):** possible directions are other public datasets with real multichannel blocks, and calibration that holds up under train-to-test drift. Nothing is claimed for them.
+- **v0.5.0 (released):** a NASA SMAP/MSL adapter (download with SHA-256 verification; the data is not bundled) and a blind, preregistered evaluation on that real public telemetry. Result: OES32 did not meet its pre-stated success criterion.
+- **v0.6.0 (current upgrade; not yet archived):** streaming POT, robust MAD/Huber/top-k scoring, change-point-aware CUSUM, seeded regime-step stress, pytest/coverage CI and Copilot instructions. These methods do not change the historical SMAP/MSL evidence.
+- **Next (not started):** architecture and data contracts for optional Temporal Convolutional and Autoencoder plugins, plus a preregistered benchmark of online threshold convergence. No model or real-data result is claimed for them.
 
 ## Limitations
 

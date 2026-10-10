@@ -656,7 +656,7 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn(oes.__version__, out)
         self.assertEqual(oes_resilience.__version__, oes.__version__)
-        self.assertRegex(oes.__version__, r"^0\.5\.0")
+        self.assertRegex(oes.__version__, r"^0\.6\.0")
 
     def test_os_error_exit_1(self):
         blocker = self.tmp / "file"

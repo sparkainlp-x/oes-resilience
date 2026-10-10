@@ -95,8 +95,26 @@ peakabs = "my_package.detectors:PeakAbs"
 | `zscore` | frame | `|s − median_b| / (1.4826·MAD_b)` with `s` = block RMS (options: `statistic="mean"` or `"mean_abs"`) | clean frames |
 | `ewma` | temporal | EWMA of the standardised block mean, `λ = 0.2`; score `|e_t| / sqrt(λ/(2−λ))` | nothing (warm-up baseline per stream) |
 | `cusum` | temporal | two-sided tabular CUSUM of the standardised block mean, `k = 0.5` | nothing (warm-up baseline per stream) |
+| `cusum-cp` (v0.6) | temporal | CUSUM with a finite-window Bayesian change-point posterior; resets accumulated memory and re-centres after a confirmed step | warm-up baseline per stream |
+| `oes32-robust` (v0.6) | frame | `0.45·top-k mean + 0.35·sqrt(mean Huber loss) + 0.20·median absolute z`; per-channel scale is `1.4826·MAD`, `top_k` is 1–4 | clean frames |
 | `oes32+ewma` (v0.3) | temporal | `max(oes32 / c_oes32, ewma / c_ewma)`; the alarm fires if either part exceeds its share, and warm-up scores are 0 | clean streams: `c` = 99th percentile (`balance_quantile`) of each part's per-stream maximum after warm-up |
 | `iforest` | frame, optional | `−IsolationForest.score_samples` on [mean, std, max|x|, RMS] per block | clean frames; needs `pip install "oes-resilience[iforest]"` |
+
+### v0.6.0 adaptive methods
+
+`POTThreshold` is a separate scalar-score threshold component, not a `Detector` subclass.
+Call `fit_calibration` with clean scores, then call `update(score)` once per stream
+observation; it returns `(is_anomaly, threshold_used)`. It fits a Generalized Pareto tail
+with a NumPy-only method-of-moments estimate, uses an empirical-quantile fallback when
+the tail sample is too small, and excludes flagged observations from its rolling window.
+See [adaptive-threshold.md](adaptive-threshold.md) for an example and limitations.
+
+`cusum-cp` uses a short rolling Gaussian Bayes factor with a geometric-hazard prior as
+a lightweight change-point posterior. When the configured posterior probability is
+reached, it clears CUSUM memory and recentres the stream baseline. It is a benchmark
+heuristic, not a general Bayesian model. Dynamic POT policies are not silently applied
+to the frozen replay preregistrations or the v0.5 SMAP/MSL evaluation; those results
+remain historical and unchanged.
 
 ## How `compare` treats every detector the same way
 
