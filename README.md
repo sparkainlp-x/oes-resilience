@@ -352,6 +352,15 @@ Without installing, run `python -m oes_resilience …` from the repository root 
 
 **Library use:** `assess_signal(signal, Config())` scores and classifies any 512-value array. `run_benchmark`, `threshold_sweep`, `run_compare`, `run_stress` and `build_replay_report` (with `load_replay` and `load_preregistration`) return JSON-ready dictionaries. `create_detector("ewma").detect(stream)` returns a `DetectionResult`, and `register_detector` adds your own detector (see [docs/detector-api.md](docs/detector-api.md)).
 
+## Reproduce one scorecard
+
+```bash
+python -m pip install .
+bash scripts/reproduce_compare.sh   # about 70 s on one 8-core Linux box; machine-dependent
+```
+
+The script reruns `compare --verify` into a temporary folder, checks the rebuilt `compare_scorecard.csv` against the SHA-256 recorded in the script (`b907d55a…f844c`) and byte-compares it with [`examples/compare_scorecard.csv`](examples/compare_scorecard.csv). It exits `0` on a match and `1` on a mismatch. See [REVIEW_GUIDE.md](REVIEW_GUIDE.md) for a reviewer's walk-through.
+
 ## Tests
 
 ```bash
