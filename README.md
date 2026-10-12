@@ -13,6 +13,8 @@ Version 0.5.0 adds the first evaluation on **real public telemetry**: a [blind, 
 
 ## v0.6.0 adaptive methods
 
+> **Unreleased.** The v0.6.0 methods in this section are on `main` only. The latest release is [v0.5.1](https://github.com/sparkainlp-x/oes-resilience/releases/tag/v0.5.1); the SMAP/MSL evaluation below belongs to v0.5.0. Until a v0.6.0 release exists, `oes-resilience --version` on `main` prints `0.6.0` while `CITATION.cff` and the archived release say 0.5.1. Cite the release, not `main`.
+
 This upgrade adds `POTThreshold`, a NumPy-only streaming EVT threshold utility with a rolling clean-score window and anomaly masking; `oes32-robust`, a per-channel MAD/Huber detector with top-k channel scoring; and `cusum-cp`, a finite-window Bayesian change-point heuristic that resets CUSUM memory and recentres after a confirmed regime step. The seeded `regime_steps` stress case adds alternating baseline offsets. These are benchmark methods, not deployment guarantees. Dynamic POT is kept separate from frozen replay thresholds, and none of the v0.5 SMAP/MSL preregistration, test results or hashes are retroactively changed.
 
 ## What it is
