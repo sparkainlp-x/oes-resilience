@@ -7,16 +7,13 @@ authors:
     given-names: "Jean-François"
     orcid: "https://orcid.org/0009-0000-9778-5374"
     affiliation: "Spark AI NLP"
-version: 0.5.1
-date-released: "2026-10-08"
+version: 0.6.0
+date-released: "2026-10-13"
 doi: 10.5281/zenodo.23071166
 identifiers:
   - type: doi
     value: 10.5281/zenodo.23071166
     description: "Concept DOI (all versions)"
-  - type: doi
-    value: 10.5281/zenodo.23241685
-    description: "Version DOI for v0.5.1"
 license: AGPL-3.0-only
 repository-code: "https://github.com/sparkainlp-x/oes-resilience"
 url: "https://sparkainlpx.xyz"
@@ -27,7 +24,8 @@ abstract: >-
   reference detector (0.45 max|x| + 0.35 RMS + 0.20 mean|x|), a robust
   z-score baseline, EWMA and CUSUM temporal detectors, an oes32+ewma hybrid
   and an optional Isolation Forest, compared in a calibrated scorecard.
-  Version 0.5.0 adds a NASA SMAP/MSL adapter (public data downloaded with
+  Version 0.6.0 adds a streaming POT threshold utility, an oes32-robust MAD/Huber detector with top-k channel scoring, a cusum-cp change-point detector, a regime_steps stress scenario, pinned CI tool versions and a one-command reproduction of the compare scorecard. OES-32-v2, a locked-protocol evaluation on NASA SMAP/MSL (validation-only search, frozen config, test run exactly once), did not meet its predeclared improvement criterion: test event F1 was 0.213 on SMAP and 0.434 on MSL, against 0.379 and 0.435 for the frozen v1 OES32 detector (v2 minus v1: -0.166 and -0.001; the criterion required +0.05 on both), and its validation runtime was 2.27x v1 against a 2x limit.
+  Version 0.5.0 added a NASA SMAP/MSL adapter (public data downloaded with
   per-file SHA-256 verification, never bundled) and a blind evaluation on
   that real telemetry under a protocol locked before any test-split scoring.
   OES32 did not meet its pre-stated success criterion: it beat only EWMA on

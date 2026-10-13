@@ -13,7 +13,7 @@ Version 0.5.0 adds the first evaluation on **real public telemetry**: a [blind, 
 
 ## v0.6.0 adaptive methods
 
-> **Unreleased.** The v0.6.0 methods in this section are on `main` only. The latest release is [v0.5.1](https://github.com/sparkainlp-x/oes-resilience/releases/tag/v0.5.1); the SMAP/MSL evaluation below belongs to v0.5.0. Until a v0.6.0 release exists, `oes-resilience --version` on `main` prints `0.6.0` while `CITATION.cff` and the archived release say 0.5.1. Cite the release, not `main`.
+> **Released as v0.6.0 (2026-10-13).** v0.6.0 also includes the [OES-32-v2 locked evaluation](oes32-v2/reports/OES32_V2_REPORT.md), which did not meet its predeclared improvement criterion (test event F1 0.213 SMAP / 0.434 MSL vs 0.379 / 0.435 for v1).
 
 This upgrade adds `POTThreshold`, a NumPy-only streaming EVT threshold utility with a rolling clean-score window and anomaly masking; `oes32-robust`, a per-channel MAD/Huber detector with top-k channel scoring; and `cusum-cp`, a finite-window Bayesian change-point heuristic that resets CUSUM memory and recentres after a confirmed regime step. The seeded `regime_steps` stress case adds alternating baseline offsets. These are benchmark methods, not deployment guarantees. Dynamic POT is kept separate from frozen replay thresholds, and none of the v0.5 SMAP/MSL preregistration, test results or hashes are retroactively changed.
 
@@ -398,7 +398,7 @@ CI in `.github/workflows/ci.yml` runs `ruff check`, pytest with a 90% coverage g
 
 ## Citation
 
-See [CITATION.cff](CITATION.cff). If you use the SMAP/MSL evaluation, also cite the dataset: K. Hundman, V. Constantinou, C. Laporte, I. Colwell and T. Soderstrom, "Detecting Spacecraft Anomalies Using LSTMs and Nonparametric Dynamic Thresholding", *Proc. 24th ACM SIGKDD*, 2018, pp. 387–395, [doi:10.1145/3219819.3219845](https://doi.org/10.1145/3219819.3219845). Releases are archived on Zenodo under the concept DOI [10.5281/zenodo.23071166](https://doi.org/10.5281/zenodo.23071166), which covers all versions. Each release also gets its own version DOI on Zenodo; v0.5.1 (metadata update) is [10.5281/zenodo.23241685](https://doi.org/10.5281/zenodo.23241685) and v0.5.0 is [10.5281/zenodo.23128059](https://doi.org/10.5281/zenodo.23128059).
+See [CITATION.cff](CITATION.cff). If you use the SMAP/MSL evaluation, also cite the dataset: K. Hundman, V. Constantinou, C. Laporte, I. Colwell and T. Soderstrom, "Detecting Spacecraft Anomalies Using LSTMs and Nonparametric Dynamic Thresholding", *Proc. 24th ACM SIGKDD*, 2018, pp. 387–395, [doi:10.1145/3219819.3219845](https://doi.org/10.1145/3219819.3219845). Releases are archived on Zenodo under the concept DOI [10.5281/zenodo.23071166](https://doi.org/10.5281/zenodo.23071166), which covers all versions. Each release also gets its own version DOI on Zenodo (the v0.6.0 version DOI is listed on the concept DOI page); v0.5.1 (metadata update) is [10.5281/zenodo.23241685](https://doi.org/10.5281/zenodo.23241685) and v0.5.0 is [10.5281/zenodo.23128059](https://doi.org/10.5281/zenodo.23128059).
 
 ## License
 

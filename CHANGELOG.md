@@ -4,9 +4,11 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.6.0] - 2026-10-13
 
-> Not yet released. The latest release is v0.5.1; `__version__` on `main` already reads 0.6.0.
+### OES-32-v2 locked evaluation (negative result)
+- `oes32-v2/`: OES-32-v2, a locked-protocol evaluation on NASA SMAP/MSL (validation-only search, frozen config, test run exactly once), did not meet its predeclared improvement criterion: test event F1 was 0.213 on SMAP and 0.434 on MSL, against 0.379 and 0.435 for the frozen v1 OES32 detector (v2 minus v1: -0.166 and -0.001; the criterion required +0.05 on both), and its validation runtime was 2.27x v1 against a 2x limit. Protocol locked in `8b474b6`, test lock in `5477ffb`, single test run in `7b46a3b`. Validation events are synthetic injections; the any-overlap event F1 rewards long alerts. The v1 code, protocol and v0.5 results are unchanged.
+- `oes32-v2/` is excluded from ruff so it stays byte-identical to the code that produced the locked results.
 
 ### Reproducibility and CI
 - `scripts/reproduce_compare.sh`: one-command reproduction of `examples/compare_scorecard.csv` with an expected SHA-256 and a reference runtime.
