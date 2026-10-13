@@ -1,0 +1,32 @@
+# OES-32-v2 evaluation rules (LOCKED before any experiment run).
+schema: oes32-v2/evaluation-rules/1
+mode: offline benchmark mode       # scores are causal (trailing windows); post-processing (min duration, merge) is retrospective
+datasets: [SMAP, MSL]              # reported separately; selection objective pools both (micro counts)
+signal: column 0 of each .npy (telemetry value); command columns unused
+ground_truth_event: contiguous labelled interval after merging overlapping or adjacent inclusive windows (same rule as v1)
+predicted_event: maximal run of alert samples after hysteresis -> merge gap -> min duration -> cooldown
+alert_rule: "start when score > T; continue while score > ratio * T (strict inequalities)"
+overlap_rule: "a predicted event matches a ground-truth event if they share at least one sample index (no tolerance)"
+event_tp: ground-truth event matched by >= 1 predicted event
+event_fn: ground-truth event matched by no predicted event
+event_fp: predicted event matching no ground-truth event
+duplicates_per_matched_event: number of predicted events matching a TP ground-truth event minus 1
+detection_delay: first alert sample of the earliest matching predicted event inside the event minus event start (samples), TP only
+event_f1: 2PR/(P+R) on counts summed over channels (micro); macro = mean per-channel event F1 over channels with >= 1 event
+point_metrics: unadjusted point precision/recall/F1 on alert samples vs labelled samples
+point_adjusted_f1: secondary only (every point of a detected event counts as predicted)
+bootstrap: {unit: channel, resamples: 10000, seed: 42, interval: percentile 95%}
+validation:
+  split: "per channel on the TRAIN file: val_len = floor(0.30 n); fit = [0, n - val_len - 128); gap = 128 samples; val = [n - val_len, n)"
+  minimum: "fit and val must each have >= 128 samples, else the channel has no validation segment (listed in the manifest)"
+  events: synthetic injected anomalies (train files carry no labels); see protocol section 4
+selection_ranking: [event_f1 rounded to 3 dp (desc), complexity (asc), event_precision (desc), macro_channel_f1 (desc), fp_events (asc), runtime (asc), trial_id (asc)]
+hard_constraints_on_validation:
+  event_precision_min: 0.55
+  event_recall_min: 0.55
+  improvement_over_v1_min: 0.05      # absolute pooled validation event F1, v2 minus frozen v1 on the same validation split
+  runtime_ratio_max: 2.0             # v2 / v1 wall clock, same hardware and input (median of 3 timed passes over all validation segments)
+  test_influence: none
+confirmatory_test_criterion: "single test run: v2 event F1 >= frozen-v1 event F1 + 0.05 on SMAP and on MSL separately (v1 as published, oes-resilience v0.5)"
+criterion_met: "only if every hard constraint holds on validation AND the confirmatory test criterion holds"
+seeds: {injection_base: 20261013, isolation_forest: [0, 1, 2, 3, 4], bootstrap: 42}
