@@ -9,7 +9,7 @@ authors:
 license: AGPL-3.0-only
 repository-code: "https://github.com/sparkainlp-x/oes-resilience"
 version: "oes32-v2"
-date-released: "2026-10-13"
+# date-released: unreleased (set at release time)
 keywords: [anomaly detection, telemetry, benchmark, preregistration, negative result, SMAP, MSL]
 references:
   - type: conference-paper
