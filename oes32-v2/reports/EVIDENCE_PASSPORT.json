@@ -16,8 +16,7 @@
  },
  "code": {
   "version": "oes32-v2",
-  "commit": "7b46a3bbbbef12a4d18492cbe3febff39de6bac7",
-  "commit_note": "Commit containing the single test run results"
+  "commit": "7b46a3bbbbef12a4d18492cbe3febff39de6bac7"
  },
  "seed": 20261013,
  "protocol": {
