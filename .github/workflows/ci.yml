@@ -16,7 +16,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - run: python -m pip install --upgrade pip ruff numpy pytest pytest-cov
+      - name: Install pinned CI tools (scipy enables the Wilcoxon cross-check test)
+        run: python -m pip install -r .github/ci-requirements.txt
       - name: Lint
         run: ruff check .
       - name: Tests with coverage (fails under 90%)
@@ -84,7 +85,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python -m pip install --upgrade pip && python -m pip install ".[test,iforest]"
+      - name: Install pinned CI tools and the package with the iforest extra
+        run: python -m pip install -r .github/ci-requirements.txt ".[test,iforest]"
       - name: Tests including the optional Isolation Forest detector
         run: python -m pytest --cov --cov-fail-under=90
       - name: Compare with iforest (small run)

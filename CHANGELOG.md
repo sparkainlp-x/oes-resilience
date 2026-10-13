@@ -6,6 +6,13 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+> Not yet released. The latest release is v0.5.1; `__version__` on `main` already reads 0.6.0.
+
+### Reproducibility and CI
+- `scripts/reproduce_compare.sh`: one-command reproduction of `examples/compare_scorecard.csv` with an expected SHA-256 and a reference runtime.
+- CI tool versions pinned in `.github/ci-requirements.txt` (NumPy, SciPy, ruff, pytest, pytest-cov, coverage, scikit-learn); SciPy is installed so the Wilcoxon cross-check no longer skips.
+- `REVIEW_GUIDE.md` for reviewers.
+
 ### Added
 - **Streaming POT threshold utility** (`oes_resilience.POTThreshold`): NumPy-only Generalized Pareto tail estimation with a rolling accepted-score window, anomaly masking, sparse-tail empirical fallback, and an explicit reset API for independently confirmed clean regime changes.
 - **`oes32-robust` detector:** per-channel median/MAD scaling and a default `0.45·top-k + 0.35·Huber + 0.20·median` score, with configurable top-k channel scoring (k = 1–4) to preserve narrow events while limiting heavy-tail influence.

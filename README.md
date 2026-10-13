@@ -13,6 +13,8 @@ Version 0.5.0 adds the first evaluation on **real public telemetry**: a [blind, 
 
 ## v0.6.0 adaptive methods
 
+> **Unreleased.** The v0.6.0 methods in this section are on `main` only. The latest release is [v0.5.1](https://github.com/sparkainlp-x/oes-resilience/releases/tag/v0.5.1); the SMAP/MSL evaluation below belongs to v0.5.0. Until a v0.6.0 release exists, `oes-resilience --version` on `main` prints `0.6.0` while `CITATION.cff` and the archived release say 0.5.1. Cite the release, not `main`.
+
 This upgrade adds `POTThreshold`, a NumPy-only streaming EVT threshold utility with a rolling clean-score window and anomaly masking; `oes32-robust`, a per-channel MAD/Huber detector with top-k channel scoring; and `cusum-cp`, a finite-window Bayesian change-point heuristic that resets CUSUM memory and recentres after a confirmed regime step. The seeded `regime_steps` stress case adds alternating baseline offsets. These are benchmark methods, not deployment guarantees. Dynamic POT is kept separate from frozen replay thresholds, and none of the v0.5 SMAP/MSL preregistration, test results or hashes are retroactively changed.
 
 ## What it is
@@ -352,6 +354,15 @@ Without installing, run `python -m oes_resilience …` from the repository root 
 
 **Library use:** `assess_signal(signal, Config())` scores and classifies any 512-value array. `run_benchmark`, `threshold_sweep`, `run_compare`, `run_stress` and `build_replay_report` (with `load_replay` and `load_preregistration`) return JSON-ready dictionaries. `create_detector("ewma").detect(stream)` returns a `DetectionResult`, and `register_detector` adds your own detector (see [docs/detector-api.md](docs/detector-api.md)).
 
+## Reproduce one scorecard
+
+```bash
+python -m pip install .
+bash scripts/reproduce_compare.sh   # about 70 s on one 8-core Linux box; machine-dependent
+```
+
+The script reruns `compare --verify` into a temporary folder, checks the rebuilt `compare_scorecard.csv` against the SHA-256 recorded in the script (`b907d55a…f844c`) and byte-compares it with [`examples/compare_scorecard.csv`](examples/compare_scorecard.csv). It exits `0` on a match and `1` on a mismatch. See [REVIEW_GUIDE.md](REVIEW_GUIDE.md) for a reviewer's walk-through.
+
 ## Tests
 
 ```bash
@@ -360,7 +371,7 @@ python -m pytest --cov --cov-report=xml  # 225 passed, 1 skipped; 98.63% total c
 python -m oes_resilience test     # stdlib unittest runner, no pytest needed (source checkout; else pass --tests-dir)
 ```
 
-CI in `.github/workflows/ci.yml` runs `ruff check`, pytest with a 90% coverage gate, per-job coverage summaries and two-week HTML reports, a byte-for-byte check of the example CSVs (including compare, stress and replay scorecards), and a pip-install smoke test on Python 3.10–3.13. It uploads XML coverage to Codecov from the Python 3.12 job; protected-branch uploads require the GitHub Actions secret `CODECOV_TOKEN` unless Codecov token authentication is disabled for the organization. A separate job installs scikit-learn and tests the optional Isolation Forest. Tests also cover adaptive-threshold anomaly masking, Student-t stress, robust top-k localization, missing data and seeded regime transitions. The stress report measures POT threshold convergence after each regime step without oracle resets. The SMAP/MSL tests run on tiny synthetic fixtures and preserve the locked protocol. [REVIEW.md](REVIEW.md) is the review of the original prototype (kept in [`original/`](original/)) that this release is based on.
+CI in `.github/workflows/ci.yml` runs `ruff check`, pytest with a 90% coverage gate, per-job coverage summaries and two-week HTML reports, a byte-for-byte check of the example CSVs (including compare, stress and replay scorecards), and a pip-install smoke test on Python 3.10–3.13. CI tool versions are pinned in [`.github/ci-requirements.txt`](.github/ci-requirements.txt); that file includes SciPy, so the Wilcoxon cross-check test runs in CI instead of being skipped. It uploads XML coverage to Codecov from the Python 3.12 job; protected-branch uploads require the GitHub Actions secret `CODECOV_TOKEN` unless Codecov token authentication is disabled for the organization. A separate job installs scikit-learn and tests the optional Isolation Forest. Tests also cover adaptive-threshold anomaly masking, Student-t stress, robust top-k localization, missing data and seeded regime transitions. The stress report measures POT threshold convergence after each regime step without oracle resets. The SMAP/MSL tests run on tiny synthetic fixtures and preserve the locked protocol. [REVIEW.md](REVIEW.md) is the review of the original prototype (kept in [`original/`](original/)) that this release is based on.
 
 ## Roadmap
 

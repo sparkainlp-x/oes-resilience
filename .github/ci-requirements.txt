@@ -1,0 +1,9 @@
+# Pinned CI tool versions. Every pin supports Python 3.10-3.13.
+# Update deliberately and in one commit, then re-check the byte-for-byte example steps.
+numpy==2.2.6
+scipy==1.15.3
+ruff==0.17.0
+pytest==9.1.1
+pytest-cov==7.1.0
+coverage==7.16.2
+scikit-learn==1.7.2
