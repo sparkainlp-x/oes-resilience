@@ -1,0 +1,15 @@
+{
+ "upload_type": "software",
+ "title": "OES-32-v2: a locked-protocol evaluation of a transparent residual/window detector on NASA SMAP/MSL (negative result)",
+ "creators": [{"name": "Brisson, Jean-François", "orcid": "0009-0000-9778-5374"}],
+ "description": "Locked-protocol, validation-only selection and a single test run of OES-32-v2 on the NASA SMAP/MSL benchmark. OES-32-v2 did not meet its predeclared improvement criterion (validation runtime ratio 2.27 > 2; test v2 minus v1 event F1 -0.166 SMAP, -0.001 MSL). Research software; offline benchmark mode; not an operational detection system. Raw data are not included (download from the telemanom source and verify with data/dataset_manifest.json).",
+ "license": "AGPL-3.0-only",
+ "keywords": ["anomaly detection", "telemetry", "benchmark", "preregistration", "negative result"],
+ "related_identifiers": [
+  {"identifier": "10.1145/3219819.3219845", "relation": "references", "scheme": "doi"},
+  {"identifier": "10.1038/s41597-025-05035-3", "relation": "references", "scheme": "doi"},
+  {"identifier": "10.1109/TKDE.2021.3112126", "relation": "references", "scheme": "doi"},
+  {"identifier": "10.5281/zenodo.23071166", "relation": "isSupplementTo", "scheme": "doi"}
+ ],
+ "communities": [{"identifier": "spark-ai-nlp"}]
+}

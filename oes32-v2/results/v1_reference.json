@@ -1,0 +1,94 @@
+{
+ "method": "OES-32-v1, frozen (oes-resilience v0.5 code, imported read-only)",
+ "rule": "score = 0.45 max|z| + 0.35 RMS(z) + 0.20 mean|z| over a 32-sample trailing window; z standardised on train mean/std; threshold by v1 calibration at 1 % train FP; alarm score >= T",
+ "published_v0.5_test_event_f1": {
+  "SMAP": 0.378601,
+  "MSL": 0.434783
+ },
+ "reproduced_in_v2_test_run": {
+  "SMAP": 0.378601,
+  "MSL": 0.434783
+ },
+ "reproduction_match": true,
+ "validation_split_metrics": {
+  "channels": 80,
+  "events": 122,
+  "tp": 99,
+  "fp": 53,
+  "fn": 23,
+  "event_precision": 0.6513157894736842,
+  "event_recall": 0.8114754098360656,
+  "event_f1": 0.7226277372262774,
+  "macro_channel_f1": 0.7390692640692641,
+  "point_precision": 0.5016088666428316,
+  "point_recall": 0.6710992059695781,
+  "point_f1": 0.574105900646534,
+  "point_adjusted_f1_secondary": 0.6834668278676138,
+  "duplicates_per_matched_event": 0.13131313131313133,
+  "delay_median": 1.0,
+  "delay_p25": 0.0,
+  "delay_p75": 11.5,
+  "delay_p90": 55.2,
+  "pred_duration_median": 38.0,
+  "pred_duration_p90": 171.9,
+  "pred_events": 162
+ },
+ "test_metrics": {
+  "SMAP": {
+   "channels": 54,
+   "events": 68,
+   "tp": 46,
+   "fp": 129,
+   "fn": 22,
+   "event_precision": 0.26285714285714284,
+   "event_recall": 0.6764705882352942,
+   "event_f1": 0.37860082304526743,
+   "macro_channel_f1": 0.5454692443491727,
+   "point_precision": 0.37747446728029255,
+   "point_recall": 0.42789251768741515,
+   "point_f1": 0.40110534248869545,
+   "point_adjusted_f1_secondary": 0.5773254254463087,
+   "duplicates_per_matched_event": 0.5652173913043478,
+   "delay_median": 29.0,
+   "delay_p25": 11.25,
+   "delay_p75": 73.25,
+   "delay_p90": 322.0,
+   "pred_duration_median": 18.0,
+   "pred_duration_p90": 209.0,
+   "pred_events": 201
+  },
+  "MSL": {
+   "channels": 27,
+   "events": 36,
+   "tp": 25,
+   "fp": 54,
+   "fn": 11,
+   "event_precision": 0.31645569620253167,
+   "event_recall": 0.6944444444444444,
+   "event_f1": 0.4347826086956521,
+   "macro_channel_f1": 0.4945236817217494,
+   "point_precision": 0.16342039721565874,
+   "point_recall": 0.32951326294102495,
+   "point_f1": 0.21848452508004268,
+   "point_adjusted_f1_secondary": 0.326100036099635,
+   "duplicates_per_matched_event": 0.76,
+   "delay_median": 17.0,
+   "delay_p25": 7.0,
+   "delay_p75": 38.0,
+   "delay_p90": 66.60000000000002,
+   "pred_duration_median": 31.0,
+   "pred_duration_p90": 128.4000000000001,
+   "pred_events": 97
+  }
+ },
+ "test_bootstrap_ci95": {
+  "SMAP": [
+   0.27177700348432055,
+   0.5253530072078457
+  ],
+  "MSL": [
+   0.3333333333333333,
+   0.5783132530120482
+  ]
+ }
+}

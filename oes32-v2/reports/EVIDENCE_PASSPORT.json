@@ -1,0 +1,216 @@
+{
+ "schema_version": 1,
+ "run_id": "oes32-v2-smap-msl-locked-2026-10-13",
+ "project": {
+  "name": "OES-Resilience: OES-32-v2 locked SMAP/MSL evaluation",
+  "version": "oes32-v2 (unreleased branch)",
+  "source_url": "https://github.com/sparkainlp-x/oes-resilience",
+  "source_note": "Local branch oes32-v2; not pushed or released at the time of writing."
+ },
+ "evidence_class": "public_dataset",
+ "dataset": {
+  "name": "NASA SMAP/MSL telemetry anomaly dataset (Hundman et al. 2018)",
+  "kind": "public labelled benchmark",
+  "description": "telemanom archive, 54 SMAP + 27 MSL labelled channels, column 0; validation events are synthetic injections into held-out train data",
+  "source_url": "https://github.com/khundman/telemanom"
+ },
+ "code": {
+  "version": "oes32-v2",
+  "commit": null
+ },
+ "seed": 20261013,
+ "protocol": {
+  "name": "OES-32-v2 protocol",
+  "version": "1",
+  "sha256": "aee4257b074ad33eca7611ac7399b3e855e46f58df706bc3c4ff980a1c2c0627",
+  "locked_at": "2026-10-13 (commit 8b474b6)",
+  "lock_commit": "8b474b6",
+  "description": "Validation-only staged search, frozen config, single test run; criterion = all validation hard constraints AND test v2 >= v1 + 0.05 on SMAP and MSL."
+ },
+ "baselines": [
+  "OES-32-v1 frozen",
+  "rolling robust z",
+  "fixed train percentile",
+  "PCA residual",
+  "Isolation Forest (5 seeds)"
+ ],
+ "results": [
+  {
+   "scope": "test SMAP",
+   "method": "OES-32-v1 frozen",
+   "metrics": [
+    {
+     "name": "event_precision",
+     "value": 0.262857,
+     "unit": "fraction"
+    },
+    {
+     "name": "event_recall",
+     "value": 0.676471,
+     "unit": "fraction"
+    },
+    {
+     "name": "event_f1",
+     "value": 0.378601,
+     "unit": "fraction",
+     "interval_95": [
+      0.271777,
+      0.525353
+     ],
+     "note": "channel-level percentile bootstrap, 10000 resamples, seed 42"
+    },
+    {
+     "name": "fp_events",
+     "value": 129,
+     "unit": "count"
+    }
+   ]
+  },
+  {
+   "scope": "test SMAP",
+   "method": "OES-32-v2 selected",
+   "metrics": [
+    {
+     "name": "event_precision",
+     "value": 0.124682,
+     "unit": "fraction"
+    },
+    {
+     "name": "event_recall",
+     "value": 0.720588,
+     "unit": "fraction"
+    },
+    {
+     "name": "event_f1",
+     "value": 0.212581,
+     "unit": "fraction",
+     "interval_95": [
+      0.109253,
+      0.680556
+     ],
+     "note": "channel-level percentile bootstrap, 10000 resamples, seed 42"
+    },
+    {
+     "name": "fp_events",
+     "value": 344,
+     "unit": "count"
+    }
+   ]
+  },
+  {
+   "scope": "test MSL",
+   "method": "OES-32-v1 frozen",
+   "metrics": [
+    {
+     "name": "event_precision",
+     "value": 0.316456,
+     "unit": "fraction"
+    },
+    {
+     "name": "event_recall",
+     "value": 0.694444,
+     "unit": "fraction"
+    },
+    {
+     "name": "event_f1",
+     "value": 0.434783,
+     "unit": "fraction",
+     "interval_95": [
+      0.333333,
+      0.578313
+     ],
+     "note": "channel-level percentile bootstrap, 10000 resamples, seed 42"
+    },
+    {
+     "name": "fp_events",
+     "value": 54,
+     "unit": "count"
+    }
+   ]
+  },
+  {
+   "scope": "test MSL",
+   "method": "OES-32-v2 selected",
+   "metrics": [
+    {
+     "name": "event_precision",
+     "value": 0.28972,
+     "unit": "fraction"
+    },
+    {
+     "name": "event_recall",
+     "value": 0.861111,
+     "unit": "fraction"
+    },
+    {
+     "name": "event_f1",
+     "value": 0.433566,
+     "unit": "fraction",
+     "interval_95": [
+      0.243243,
+      0.857143
+     ],
+     "note": "channel-level percentile bootstrap, 10000 resamples, seed 42"
+    },
+    {
+     "name": "fp_events",
+     "value": 76,
+     "unit": "count"
+    }
+   ]
+  }
+ ],
+ "result_label": "criterion_not_met",
+ "interpretation": "OES-32-v2 did not meet its predeclared improvement criterion: validation runtime ratio 2.27 > 2.0, and on the single test run v2 minus v1 event F1 was -0.166 (SMAP) and -0.001 (MSL), below the required +0.05.",
+ "limitations": [
+  "Validation events are synthetic injections; validation F1 does not measure real-anomaly detection.",
+  "Any-overlap event F1 rewards long alerts.",
+  "SMAP/MSL has known benchmark flaws (Ruszczak et al. 2025; Wu & Keogh 2023).",
+  "One dataset, one protocol, one run; independent replication required.",
+  "Research software; not an operational detection system."
+ ],
+ "artifacts": [
+  {
+   "path": "protocols/oes32_v2_protocol.md",
+   "role": "protocol",
+   "description": "Locked OES-32-v2 protocol (commit 8b474b6)",
+   "sha256": "aee4257b074ad33eca7611ac7399b3e855e46f58df706bc3c4ff980a1c2c0627"
+  },
+  {
+   "path": "configs/final_config.yaml",
+   "role": "config",
+   "description": "Frozen final configuration (trial 4193)",
+   "sha256": "e16034f602871f119031560d15d17e4890f8571441af95df562662a6496d2698"
+  },
+  {
+   "path": "experiments/TEST_LOCK.md",
+   "role": "test_lock",
+   "description": "Test lock note",
+   "sha256": "4370cc88395806e919ec677fa58e0af08fe0baf332650c89c4e84d0ec47caa23"
+  },
+  {
+   "path": "data/dataset_manifest.json",
+   "role": "data_manifest",
+   "description": "Dataset manifest with 165 SHA-256s",
+   "sha256": "2ffcc18690a73f480e904068a82f2d111ac54ff63a625bda38221f6072d1a032"
+  },
+  {
+   "path": "experiments/all_trials.csv",
+   "role": "trials",
+   "description": "All 4223 validation trials",
+   "sha256": "b2119e06fcc9b9074af80a8d6e0ef504c53c6c215ce6a8a8cbbfe57130d771aa"
+  },
+  {
+   "path": "results/final_test_summary.json",
+   "role": "results",
+   "description": "Single test run summary",
+   "sha256": "4ff9e6d801ea399f80a26d81228090ae78bb39f6ad79c5d2497e99796dcfa9f6"
+  },
+  {
+   "path": "results/baseline_comparison.csv",
+   "role": "results",
+   "description": "Validation, test and published v0.5 comparison",
+   "sha256": "11dd670a62d2a65bfe64ca25082715fad19eb2358c6e857535d03c463ebcb0d2"
+  }
+ ]
+}

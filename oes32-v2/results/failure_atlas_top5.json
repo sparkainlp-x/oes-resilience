@@ -1,0 +1,46 @@
+{
+ "A_v1_frozen": [
+  [
+   "FP / drift",
+   68
+  ],
+  [
+   "FP / data-quality issue",
+   45
+  ],
+  [
+   "FP / periodic mismatch",
+   25
+  ],
+  [
+   "FP / isolated spike",
+   25
+  ],
+  [
+   "FN / threshold miss",
+   12
+  ]
+ ],
+ "F_or_G_v2_selected": [
+  [
+   "FP / data-quality issue",
+   153
+  ],
+  [
+   "FP / drift",
+   116
+  ],
+  [
+   "FP / periodic mismatch",
+   77
+  ],
+  [
+   "FP / regime shift",
+   43
+  ],
+  [
+   "FP / noisy segment",
+   16
+  ]
+ ]
+}

@@ -1,0 +1,64 @@
+split,method,dataset,event_precision,event_recall,event_f1,event_f1_ci95_low,event_f1_ci95_high,macro_channel_f1,tp,fp,fn,point_f1,source
+validation (synthetic injected events),A_v1_frozen,all,0.651316,0.811475,0.722628,,,0.739069,99,53,23,0.574106,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),A_v1_frozen,SMAP,0.638655,0.863636,0.7343,,,0.794103,76,43,12,0.584789,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),A_v1_frozen,MSL,0.69697,0.676471,0.686567,,,0.631041,23,10,11,0.530476,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),B_rolling_mad,all,0.34717,0.754098,0.475452,,,0.571308,92,173,30,0.431538,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),B_rolling_mad,SMAP,0.366667,0.75,0.492537,,,0.582074,66,114,22,0.414164,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),B_rolling_mad,MSL,0.305882,0.764706,0.436975,,,0.550176,26,59,8,0.47961,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),C_train_percentile,all,0.457547,0.795082,0.580838,,,0.685691,97,115,25,0.560396,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),C_train_percentile,SMAP,0.474684,0.852273,0.609756,,,0.75895,75,83,13,0.557051,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),C_train_percentile,MSL,0.407407,0.647059,0.5,,,0.541887,22,32,12,0.574074,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),D_pca_residual,all,0.321555,0.745902,0.449383,,,0.541439,91,192,31,0.579655,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),D_pca_residual,SMAP,0.348039,0.806818,0.486301,,,0.586583,71,133,17,0.594887,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),D_pca_residual,MSL,0.253165,0.588235,0.353982,,,0.452825,20,59,14,0.531789,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),F_or_G_v2_selected,all,0.96748,0.97541,0.971429,,,0.953333,119,4,3,0.316788,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),F_or_G_v2_selected,SMAP,0.977273,0.977273,0.977273,,,0.954717,86,2,2,0.332451,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),F_or_G_v2_selected,MSL,0.942857,0.970588,0.956522,,,0.950617,33,2,1,0.278773,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),F_v2_best_standalone,all,0.991071,0.909836,0.948718,,,0.895833,111,1,11,0.321196,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),F_v2_best_standalone,SMAP,1.0,0.920455,0.95858,,,0.924528,81,0,7,0.336173,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),F_v2_best_standalone,MSL,0.967742,0.882353,0.923077,,,0.839506,30,1,4,0.282288,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),E_isolation_forest_seed0,all,0.27193,0.508197,0.354286,,,0.313324,62,166,60,0.493631,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),E_isolation_forest_seed0,SMAP,0.297468,0.534091,0.382114,,,0.32953,47,111,41,0.537329,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),E_isolation_forest_seed0,MSL,0.214286,0.441176,0.288462,,,0.281514,15,55,19,0.348029,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),E_isolation_forest_seed1,all,0.236,0.483607,0.317204,,,0.285389,59,191,63,0.493583,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),E_isolation_forest_seed1,SMAP,0.258242,0.534091,0.348148,,,0.306247,47,135,41,0.539173,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),E_isolation_forest_seed1,MSL,0.176471,0.352941,0.235294,,,0.244444,12,56,22,0.340836,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),E_isolation_forest_seed2,all,0.261062,0.483607,0.33908,,,0.304405,59,167,63,0.50374,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),E_isolation_forest_seed2,SMAP,0.297468,0.534091,0.382114,,,0.334861,47,111,41,0.54741,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),E_isolation_forest_seed2,MSL,0.176471,0.352941,0.235294,,,0.244621,12,56,22,0.35762,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),E_isolation_forest_seed3,all,0.263393,0.483607,0.34104,,,0.321757,59,165,63,0.505211,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),E_isolation_forest_seed3,SMAP,0.283951,0.522727,0.368,,,0.342903,46,116,42,0.551879,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),E_isolation_forest_seed3,MSL,0.209677,0.382353,0.270833,,,0.280247,13,49,21,0.34775,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),E_isolation_forest_seed4,all,0.265823,0.516393,0.350975,,,0.316168,63,174,59,0.510805,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),E_isolation_forest_seed4,SMAP,0.285714,0.545455,0.375,,,0.329695,48,120,40,0.549047,oes32-v2 results/validation_summary.csv
+validation (synthetic injected events),E_isolation_forest_seed4,MSL,0.217391,0.441176,0.291262,,,0.289615,15,54,19,0.384681,oes32-v2 results/validation_summary.csv
+test (single run),A_v1_frozen,SMAP,0.262857,0.676471,0.378601,0.271777,0.525353,0.545469,46,129,22,0.401105,oes32-v2 results/final_test_summary.json
+test (single run),A_v1_frozen,MSL,0.316456,0.694444,0.434783,0.333333,0.578313,0.494524,25,54,11,0.218485,oes32-v2 results/final_test_summary.json
+test (single run),B_rolling_mad,SMAP,0.034921,0.647059,0.066265,0.029624,0.201342,0.458978,44,1216,24,0.26536,oes32-v2 results/final_test_summary.json
+test (single run),B_rolling_mad,MSL,0.090909,0.722222,0.161491,0.100916,0.275235,0.373506,26,260,10,0.233242,oes32-v2 results/final_test_summary.json
+test (single run),C_train_percentile,SMAP,0.046841,0.632353,0.087221,0.047508,0.199117,0.553015,43,875,25,0.313439,oes32-v2 results/final_test_summary.json
+test (single run),C_train_percentile,MSL,0.164384,0.666667,0.263736,0.191781,0.391312,0.384163,24,122,12,0.173304,oes32-v2 results/final_test_summary.json
+test (single run),D_pca_residual,SMAP,0.061202,0.823529,0.113937,0.07455,0.196843,0.539072,56,859,12,0.282512,oes32-v2 results/final_test_summary.json
+test (single run),D_pca_residual,MSL,0.098182,0.75,0.173633,0.112094,0.28972,0.453184,27,248,9,0.228593,oes32-v2 results/final_test_summary.json
+test (single run),E_isolation_forest_seed0,SMAP,0.034483,0.544118,0.064855,0.045714,0.098685,0.174772,37,1036,31,0.167267,oes32-v2 results/final_test_summary.json
+test (single run),E_isolation_forest_seed0,MSL,0.080495,0.722222,0.144847,0.112903,0.199134,0.259331,26,297,10,0.154192,oes32-v2 results/final_test_summary.json
+test (single run),E_isolation_forest_seed1,SMAP,0.028405,0.573529,0.054129,0.040156,0.076383,0.201876,39,1334,29,0.168458,oes32-v2 results/final_test_summary.json
+test (single run),E_isolation_forest_seed1,MSL,0.086331,0.666667,0.152866,0.113921,0.218753,0.27496,24,254,12,0.151627,oes32-v2 results/final_test_summary.json
+test (single run),E_isolation_forest_seed2,SMAP,0.032258,0.617647,0.061314,0.041988,0.1,0.211722,42,1260,26,0.168482,oes32-v2 results/final_test_summary.json
+test (single run),E_isolation_forest_seed2,MSL,0.079208,0.666667,0.141593,0.108108,0.195745,0.260454,24,279,12,0.155997,oes32-v2 results/final_test_summary.json
+test (single run),E_isolation_forest_seed3,SMAP,0.0329,0.558824,0.062142,0.042582,0.098766,0.214347,38,1117,30,0.170349,oes32-v2 results/final_test_summary.json
+test (single run),E_isolation_forest_seed3,MSL,0.090253,0.694444,0.159744,0.123894,0.219653,0.26737,25,252,11,0.148678,oes32-v2 results/final_test_summary.json
+test (single run),E_isolation_forest_seed4,SMAP,0.036929,0.558824,0.06928,0.047243,0.110727,0.21529,38,991,30,0.174692,oes32-v2 results/final_test_summary.json
+test (single run),E_isolation_forest_seed4,MSL,0.087273,0.666667,0.154341,0.116617,0.216667,0.259629,24,251,12,0.144046,oes32-v2 results/final_test_summary.json
+test (single run),F_or_G_v2_selected,SMAP,0.124682,0.720588,0.212581,0.109253,0.680556,0.696421,49,344,19,0.23396,oes32-v2 results/final_test_summary.json
+test (single run),F_or_G_v2_selected,MSL,0.28972,0.861111,0.433566,0.243243,0.857143,0.77835,31,76,5,0.211765,oes32-v2 results/final_test_summary.json
+"test (published oes-resilience v0.5, target FP 0.01)",v0.5_oes32,SMAP,0.262857,0.676471,0.378601,0.273556,0.522167,0.545469,46,129,22,,reports/smap_msl_results/smap_msl_summary.csv
+"test (published oes-resilience v0.5, target FP 0.01)",v0.5_maxabs,SMAP,0.537037,0.426471,0.47541,0.328767,0.645841,0.443307,29,25,39,,reports/smap_msl_results/smap_msl_summary.csv
+"test (published oes-resilience v0.5, target FP 0.01)",v0.5_zscore,SMAP,0.031878,0.676471,0.060887,0.032237,0.155983,0.504065,46,1397,22,,reports/smap_msl_results/smap_msl_summary.csv
+"test (published oes-resilience v0.5, target FP 0.01)",v0.5_ewma,SMAP,0.046047,0.779412,0.086957,0.060642,0.131869,0.435964,53,1098,15,,reports/smap_msl_results/smap_msl_summary.csv
+"test (published oes-resilience v0.5, target FP 0.01)",v0.5_cusum,SMAP,0.093604,0.882353,0.169252,0.122105,0.256413,0.55313,60,581,8,,reports/smap_msl_results/smap_msl_summary.csv
+"test (published oes-resilience v0.5, target FP 0.01)",v0.5_oes32,MSL,0.316456,0.694444,0.434783,0.333291,0.575758,0.494524,25,54,11,,reports/smap_msl_results/smap_msl_summary.csv
+"test (published oes-resilience v0.5, target FP 0.01)",v0.5_maxabs,MSL,0.5,0.5,0.5,0.350868,0.657143,0.459436,18,18,18,,reports/smap_msl_results/smap_msl_summary.csv
+"test (published oes-resilience v0.5, target FP 0.01)",v0.5_zscore,MSL,0.151515,0.694444,0.248756,0.177911,0.389381,0.450336,25,140,11,,reports/smap_msl_results/smap_msl_summary.csv
+"test (published oes-resilience v0.5, target FP 0.01)",v0.5_ewma,MSL,0.13198,0.722222,0.223176,0.126982,0.423358,0.464456,26,171,10,,reports/smap_msl_results/smap_msl_summary.csv
+"test (published oes-resilience v0.5, target FP 0.01)",v0.5_cusum,MSL,0.391304,0.75,0.514286,0.387097,0.681319,0.560619,27,42,9,,reports/smap_msl_results/smap_msl_summary.csv
