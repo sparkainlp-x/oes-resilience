@@ -1,0 +1,37 @@
+# OES-32-v2 predeclared search space (LOCKED; do not expand after validation search begins).
+# Mirrors protocols/PROTOCOL_USER.md "OES-32-V2 SEARCH SPACE". Implementation notes in
+# protocols/oes32_v2_protocol.md section 6.
+schema: oes32-v2/search-space/1
+normalization:
+  scope: [per_channel, global]          # global = one median/MAD per spacecraft, pooled over fit segments
+  epsilon: [1.0e-12, 1.0e-9, 1.0e-6]
+  clip: [none, 5, 10]                   # symmetric clip of the scaled value to [-c, c]
+window:
+  length: [8, 16, 32, 64, 128]
+  aggregation: [mean, median, max, topk_mean]   # applied to |x_scaled| over the trailing window
+  topk: [1, 2, 4, 8]                    # only for topk_mean; k must be <= window length
+  smoothing: [none, 3, 5, 9]            # trailing moving average of the window score
+threshold:                              # calibrated on the CLEAN (un-injected) validation segment only
+  per_channel_quantile: [0.95, 0.975, 0.99, 0.995, 0.999]
+  global_quantile: [0.95, 0.975, 0.99, 0.995, 0.999]   # pooled per spacecraft
+  robust_multiplier: [2.5, 3.0, 3.5, 4.0, 4.5]        # T = median + m * 1.4826 * MAD of clean-val scores
+postprocess:
+  hysteresis_low_high_ratio: [0.60, 0.70, 0.80, 0.90]
+  min_alert_duration: [1, 2, 3, 5, 8]
+  max_merge_gap: [0, 1, 2, 4, 8]
+  cooldown: [0, 1, 2, 4]
+complementary:                          # at most one
+  feature: [none, rolling_mad, pca_residual]
+  combination: [normalized_mean, max, weighted_sum]
+  weight: [0.25, 0.50, 0.75]            # weight of the OES-32 term; only for weighted_sum
+staged_screening:
+  stage1:
+    vary: [window.length, window.aggregation, window.topk, window.smoothing, threshold]
+    fixed: {normalization: {scope: per_channel, epsilon: 1.0e-9, clip: none},
+            postprocess: {hysteresis_low_high_ratio: 0.90, min_alert_duration: 1, max_merge_gap: 0, cooldown: 0},
+            complementary: {feature: none}}
+    size: 2100                          # 35 window/aggregation combos x 4 smoothing x 15 threshold rules
+  stage2a: {from: stage1 top 5, vary: [normalization], size: 90}
+  stage2b: {from: stage2a top 5, vary: [postprocess], size: 2000}
+  stage2c: {from: stage2b top 3, vary: [complementary], size: 33}
+  max_total_trials: 6000

@@ -1,0 +1,16 @@
+{
+ "trials": 4223,
+ "failed": 0,
+ "wall_clock_s": 66.8,
+ "validation_channels": 80,
+ "validation_events": {
+  "SMAP": 88,
+  "MSL": 34
+ },
+ "injected_types": {
+  "spike": 36,
+  "level_shift": 23,
+  "drift": 34,
+  "variance_burst": 29
+ }
+}

@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: "If you use this evaluation, cite it as below. It reports a negative result: OES-32-v2 did not meet its predeclared improvement criterion."
+title: "OES-32-v2: a locked-protocol evaluation of a transparent residual/window detector on NASA SMAP/MSL"
+type: software
+authors:
+  - family-names: Brisson
+    given-names: Jean-François
+    orcid: "https://orcid.org/0009-0000-9778-5374"
+license: AGPL-3.0-only
+repository-code: "https://github.com/sparkainlp-x/oes-resilience"
+version: "oes32-v2"
+# date-released: unreleased (set at release time)
+keywords: [anomaly detection, telemetry, benchmark, preregistration, negative result, SMAP, MSL]
+references:
+  - type: conference-paper
+    title: "Detecting Spacecraft Anomalies Using LSTMs and Nonparametric Dynamic Thresholding"
+    authors: [{family-names: Hundman, given-names: Kyle}, {family-names: Constantinou, given-names: Valentino}, {family-names: Laporte, given-names: Christopher}, {family-names: Colwell, given-names: Ian}, {family-names: Soderstrom, given-names: Tom}]
+    year: 2018
+    doi: 10.1145/3219819.3219845
+  - type: article
+    title: "The OPS-SAT benchmark for detecting anomalies in satellite telemetry"
+    authors: [{family-names: Ruszczak, given-names: Bogdan}, {family-names: Kotowski, given-names: Krzysztof}, {family-names: Evans, given-names: David}, {family-names: Nalepa, given-names: Jakub}]
+    journal: Scientific Data
+    volume: 12
+    year: 2025
+    doi: 10.1038/s41597-025-05035-3
+  - type: article
+    title: "Current Time Series Anomaly Detection Benchmarks are Flawed and are Creating the Illusion of Progress"
+    authors: [{family-names: Wu, given-names: Renjie}, {family-names: Keogh, given-names: Eamonn J.}]
+    journal: IEEE Transactions on Knowledge and Data Engineering
+    year: 2023
+    doi: 10.1109/TKDE.2021.3112126
