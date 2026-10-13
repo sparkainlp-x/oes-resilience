@@ -1,0 +1,37 @@
+{
+ "v1_repro": {
+  "published": {
+   "SMAP": 0.378601,
+   "MSL": 0.434783
+  },
+  "reproduced": {
+   "SMAP": 0.378601,
+   "MSL": 0.434783
+  },
+  "match": true
+ },
+ "H2": {
+  "v2_minus_v1_event_f1": {
+   "SMAP": -0.16601947814288132,
+   "MSL": -0.0012161751292185663
+  },
+  "required": 0.05,
+  "met": false
+ },
+ "v2": {
+  "SMAP": {
+   "event_precision": 0.1247,
+   "event_recall": 0.7206,
+   "event_f1": 0.2126,
+   "macro_channel_f1": 0.6964,
+   "fp": 344
+  },
+  "MSL": {
+   "event_precision": 0.2897,
+   "event_recall": 0.8611,
+   "event_f1": 0.4336,
+   "macro_channel_f1": 0.7783,
+   "fp": 76
+  }
+ }
+}
