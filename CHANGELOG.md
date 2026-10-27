@@ -4,6 +4,11 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed (wording only)
+- README headline no longer says "real-world stress": the stress scenarios are synthetic, and the only real-data evaluation (NASA SMAP/MSL) is a reported negative result. `CITATION.cff` and `.zenodo.json` titles are unchanged so that they keep matching the published Zenodo record.
+
 ## [0.6.0] - 2026-10-13
 
 ### OES-32-v2 locked evaluation (negative result)
