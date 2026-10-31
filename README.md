@@ -21,6 +21,7 @@ This upgrade adds `POTThreshold`, a NumPy-only streaming EVT threshold utility w
 
 - **A reproducible benchmark harness.** Each trial generates a synthetic 512-channel signal and splits it into sixteen 32-channel blocks. The harness asks whether a detector flags the right blocks and reports false-positive, detection, exact-match, overlap (IoU) and localization metrics.
 - **A transparent reference detector (OES32).** Every 32-channel block gets the score `0.45·max|x| + 0.35·RMS(x) + 0.20·mean|x|`. A block is flagged when its score is `>= threshold` (default 0.50). There are no learned parameters, and the whole rule fits on one line.
+- **Note on the OES32 name.** The OES32 detector here scores each 32-channel block as w_max·max|x| + w_rms·RMS(x) + w_mean·mean|x| (defaults 0.45/0.35/0.20, threshold 0.50). That differs from the ADR-001 max-abs definition in oes32-residual (score = max|x|), so OES32 benchmark numbers here are not max-abs numbers.
 - **Deterministic by construction.** Trial *i* of each regime is seeded with `numpy.random.SeedSequence(seed, spawn_key=(regime_key, i))`. The results JSON, summary CSV and manifest are byte-for-byte reproducible, and run metadata (time, platform) goes in a separate file.
 - **A small Python package** (`oes_resilience/`) with a CLI (`run`, `sweep`, `compare`, `stress`, `replay`, `test`), a documented [detector plugin API](docs/detector-api.md) and a tested library API. NumPy is the only required dependency.
 
