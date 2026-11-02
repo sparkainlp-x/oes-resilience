@@ -1,6 +1,6 @@
 # OES-Resilience
 
-**Benchmarking telemetry intelligence under real-world stress**: an open, reproducible benchmark for multichannel telemetry anomaly detection, with **OES32** as its transparent reference detector.
+**Benchmarking multichannel telemetry anomaly detection under synthetic stress scenarios**: an open, reproducible benchmark with **OES32** as its transparent reference detector. The baselines are synthetic. The one real-data evaluation (NASA SMAP/MSL, v0.5.0) is a reported negative result: OES32 did not meet its pre-stated success criterion.
 [![CI Benchmark & Verification Suite](https://github.com/sparkainlp-x/oes-resilience/actions/workflows/ci.yml/badge.svg)](https://github.com/sparkainlp-x/oes-resilience/actions/workflows/ci.yml)
 [![Codecov Coverage](https://img.shields.io/codecov/c/github/sparkainlp-x/oes-resilience/main?logo=codecov)](https://codecov.io/gh/sparkainlp-x/oes-resilience)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
